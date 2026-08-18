@@ -1,0 +1,63 @@
+
+body {
+    font-family: Arial, sans-serif;
+}
+
+.cameras {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.camera {
+    width: 800px;
+}
+
+.video-container {
+
+    position: relative;
+
+    width: 800px;
+    height: 450px;
+
+}
+
+.video {
+
+    display: block;
+
+    width: 800px;
+    height: 450px;
+
+}
+
+.canvas {
+
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 800px;
+    height: 450px;
+
+    cursor: crosshair;
+
+}
+
+button {
+
+    margin-top: 10px;
+    margin-right: 5px;
+
+    padding: 8px 15px;
+
+}
+
+.info {
+
+    margin: 10px 0;
+
+    font-size: 18px;
+
+}

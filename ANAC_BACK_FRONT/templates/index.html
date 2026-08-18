@@ -1,0 +1,70 @@
+<!doctype html><html lang="fr">
+    <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>SMARTQUEUE-AVSEC</title><link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+<aside class="sidebar">
+    <div class="logo">✈ <b>SMARTQUEUE</b><small>AVSEC • LOMÉ</small></div>
+    <div class="user"><div class="avatar">👤</div>
+    <div><b>Superviseur</b><small>Responsable AVSEC</small><em>● En ligne</em></div></div>
+    <nav>
+        <a class="active" data-page="dashboard">▣ Tableau de bord</a>
+        <a data-page="flux">📊 Flux passagers</a>
+        <a data-page="files">☷ Files d'attente</a>
+        <a data-page="cameras">▣ Caméras</a>
+        <a data-page="previsions">◷ Prévisions</a>
+        <a data-page="alertes">⚠ Alertes <b>3</b></a>
+        <a data-page="rapports">▤ Rapports</a>
+        <a data-page="parametres">⚙ Paramètres</a>
+        <a href="/test" target="_blank">Interface de test </a> <!-- modifier par parfait -->
+    </nav>
+    <div class="date"><strong id="time"></strong><span id="dateText"></span></div>
+</aside>
+<main>
+    <header>
+        <div>
+            <small>AÉROPORT INTERNATIONAL GNASSINGBE EYADEMA</small>
+            <h1 id="pageTitle"></h1>
+        </div>
+        <div> <!--🔔 <button>☀ Mode clair</button>--></div>
+    </header>
+    <div id="content"></div>
+    <footer><!--SMARTQUEUE-AVSEC • Prototype --><span><!--Données de démonstration--></span></footer>
+</main>
+
+<div id="cameraModal" class="modal hidden">
+    <div class="modal-box">
+        <div class="modal-head">
+            <h2>Choisir une caméra</h2>
+            <button onclick="closeCamera()">✕</button>
+        </div>
+        <div id="cameraList" class="camera-list"></div>
+    </div>
+</div>
+<div id="videoModal" class="modal hidden">
+    <div class="large-box">
+        <div class="modal-head">
+            <h2 id="largeTitle">Caméra</h2>
+            <button onclick="closeVideo()">✕</button>
+        </div>
+        <div class="large-video">
+            <div class="fake-video">📹<br>FLUX VIDÉO<br>
+                <small>Emplacement réservé au flux réel fourni par Python.</small>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- modifier par parfait -->
+<script
+    type="module"
+    src="/static/script.js"
+></script>
+
+<script
+    type="module"
+    src="/static/script_test.js"
+></script>
+
+</body>
+</html>
