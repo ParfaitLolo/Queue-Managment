@@ -1,0 +1,597 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #f3f6f8;
+    color: #263746;
+    font: 14px Arial, sans-serif;
+}
+
+
+/* ================= SIDEBAR ================= */
+
+.sidebar {
+    position: fixed;
+    width: 235px;
+    height: 100vh;
+    background: #12343b;
+    color: white;
+    padding: 20px 12px;
+    box-shadow: 3px 0 15px #0002;
+}
+
+.logo {
+    font-size: 18px;
+    padding: 10px;
+}
+
+.logo small {
+    display: block;
+    margin-left: 30px;
+    color: #9db4b8;
+    font-size: 10px;
+}
+
+.user {
+    display: flex;
+    gap: 10px;
+    padding: 20px 10px;
+    border-bottom: 1px solid #ffffff20;
+}
+
+.avatar {
+    background: #2b5960;
+    border-radius: 50%;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user small,
+.user em {
+    display: block;
+    font-size: 10px;
+    margin-top: 4px;
+}
+
+.user small {
+    color: #a9bec1;
+}
+
+.user em {
+    color: #55c98b;
+    font-style: normal;
+}
+
+nav {
+    margin-top: 15px;
+}
+
+nav a {
+    display: block;
+    padding: 13px 12px;
+    color: #c1d0d3;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+nav a:hover,
+nav a.active {
+    background: #237b78;
+    color: white;
+}
+
+nav b {
+    float: right;
+    background: #d9534f;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-size: 10px;
+}
+
+
+/* ================= MAIN ================= */
+
+main {
+    margin-left: 235px;
+    padding: 20px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+header small {
+    color: #72858c;
+    font-size: 10px;
+    letter-spacing: 1px;
+}
+
+h1 {
+    font-size: 21px;
+    margin: 5px 0;
+    color: #193b43;
+}
+
+
+/* ================= SYSTEME ================= */
+
+.system-status {
+    text-align: right;
+}
+
+.status-line {
+    font-size: 11px;
+    font-weight: bold;
+    color: #287d68;
+}
+
+.status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: #38b879;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.datetime {
+    margin-top: 6px;
+    color: #6c7e84;
+}
+
+.datetime span {
+    margin-right: 10px;
+}
+
+.datetime strong {
+    color: #193b43;
+}
+
+
+/* ================= DASHBOARD ================= */
+
+.dashboard {
+    display: grid;
+    grid-template-columns: 220px 1fr 280px;
+    gap: 12px;
+}
+
+.indicators,
+.alerts,
+.panel,
+.page {
+    background: white;
+    border: 1px solid #d9e2e5;
+    padding: 14px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px #173b4310;
+}
+
+.indicators h2,
+.panel h2,
+.alerts h2 {
+    font-size: 12px;
+    margin: 0;
+    color: #31545b;
+}
+
+
+/* ================= INDICATEURS ================= */
+
+.indicator,
+.total {
+    margin-top: 12px;
+    padding: 14px;
+    border-radius: 6px;
+}
+
+.indicator span,
+.total span {
+    font-size: 10px;
+}
+
+.indicator strong,
+.total strong {
+    display: inline-block;
+    font-size: 26px;
+    margin-top: 5px;
+}
+
+.indicator label {
+    float: right;
+    font-size: 9px;
+    padding: 5px;
+}
+
+.green {
+    background: #e9f7f1;
+    color: #278261;
+}
+
+.orange {
+    background: #fff4df;
+    color: #b87920;
+}
+
+.total {
+    background: #e8f1f3;
+    color: #28727a;
+}
+
+.total p {
+    display: inline;
+}
+
+
+/* ================= CAMERAS ================= */
+
+.cameras {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.camera {
+    background: white;
+    border: 1px solid #d9e2e5;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px #173b4310;
+}
+
+.camera-header {
+    padding: 9px;
+    font-size: 11px;
+    border-bottom: 1px solid #e1e8ea;
+    color: #34565e;
+}
+
+.camera-header b {
+    float: right;
+    color: #2b9a6f;
+}
+
+
+/* ================= VIDEO + CANVAS ================= */
+
+.camera-screen {
+    background: #172b31;
+    padding: 0;
+}
+
+
+/*
+    IMPORTANT :
+    Le canvas est positionné directement
+    au-dessus de la vidéo.
+*/
+
+.video-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+}
+
+.video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    cursor: crosshair;
+    z-index: 2;
+}
+
+
+/* ================= YOLO ================= */
+
+.person-count {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 10px 12px;
+
+    background: #f0f6f7;
+    border-top: 1px solid #dce6e8;
+}
+
+.person-count span {
+    font-size: 10px;
+    font-weight: bold;
+    color: #61777d;
+}
+
+.person-count strong {
+    font-size: 22px;
+    color: #237b78;
+}
+
+
+/* ================= BOUTONS CAMERA ================= */
+
+.camera-actions {
+    display: flex;
+    gap: 5px;
+    padding: 8px;
+}
+
+.camera-actions button {
+    flex: 1;
+    border: 0;
+    padding: 8px;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+}
+
+.select-camera {
+    background: #287b78;
+}
+
+.expand-camera {
+    background: #47646b;
+}
+
+.zone-actions {
+    display: flex;
+    gap: 5px;
+    padding: 0 8px 8px;
+}
+
+.zone-actions button {
+    flex: 1;
+    border: 0;
+    padding: 7px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.validate-zone {
+    background: #318b70;
+    color: white;
+}
+
+.clear-zone {
+    background: #e7ecee;
+    color: #52676d;
+}
+
+
+/* ================= ALERTES ================= */
+
+.alert {
+    margin-top: 10px;
+    padding: 12px;
+}
+
+.critical {
+    background: #fff0ef;
+    border-left: 3px solid #dc5b55;
+}
+
+.warning {
+    background: #fff6e5;
+    border-left: 3px solid #d99a32;
+}
+
+.info {
+    background: #edf6f7;
+    border-left: 3px solid #3c8990;
+}
+
+
+/* ================= TABLE ================= */
+
+.bottom {
+    margin-top: 12px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    font-size: 11px;
+}
+
+td,
+th {
+    padding: 10px;
+    border-bottom: 1px solid #e1e8ea;
+    text-align: left;
+}
+
+th {
+    color: #71858b;
+}
+
+
+/* ================= RECOMMANDATION ================= */
+
+.recommendation {
+    margin-top: 12px;
+    background: white;
+    border: 1px solid #d9e2e5;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px;
+}
+
+.recommendation strong {
+    color: #287b78;
+}
+
+.recommendation button {
+    background: #287b78;
+    border: 0;
+    color: white;
+    padding: 10px 18px;
+    border-radius: 5px;
+}
+
+
+/* ================= MODALES ================= */
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: #10252dcc;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    z-index: 100;
+}
+
+.hidden {
+    display: none;
+}
+
+.modal-box,
+.large-box {
+    width: 500px;
+    max-width: 90%;
+    background: white;
+    border: 1px solid #d5e0e2;
+    padding: 18px;
+    border-radius: 8px;
+}
+
+.large-box {
+    width: 90%;
+    max-width: 1100px;
+}
+
+.modal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-head button {
+    background: none;
+    border: 0;
+    color: #36545b;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+
+/* ================= LISTE CAMERAS ================= */
+
+.camera-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.camera-option {
+    background: #edf4f5;
+    border: 1px solid #d1dfe1;
+    color: #34565e;
+    padding: 12px;
+    text-align: left;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.camera-option small {
+    display: block;
+    color: #7a8d92;
+}
+
+
+/* ================= VIDEO AGRANDIE ================= */
+
+.large-video {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #102125;
+    margin-top: 15px;
+    overflow: hidden;
+}
+
+.large-video-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+
+/* ================= FOOTER ================= */
+
+footer {
+    margin-top: 15px;
+    color: #7a8b90;
+    font-size: 9px;
+}
+
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 1100px) {
+
+    .dashboard {
+        grid-template-columns: 200px 1fr;
+    }
+
+    .alerts {
+        grid-column: 1 / 3;
+    }
+}
+
+
+@media (max-width: 800px) {
+
+    .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+    }
+
+    main {
+        margin-left: 0;
+    }
+
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .system-status {
+        text-align: left;
+    }
+
+    .dashboard,
+    .cameras {
+        grid-template-columns: 1fr;
+    }
+
+    .alerts {
+        grid-column: auto;
+    }
+}
