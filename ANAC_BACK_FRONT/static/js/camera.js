@@ -20,6 +20,11 @@ function setupCamera(cameraId) {
         `canvas-${cameraId}`
     );
 
+    if (!canvas) {
+        console.error(`Canvas canvas-${cameraId} introuvable.`);
+        return;
+    }
+
     const ctx = canvas.getContext("2d");
 
 
@@ -580,12 +585,28 @@ function setupCamera(cameraId) {
 // INITIALISATION DES CAMÉRAS
 // ============================================================
 
-cameraIds.forEach(
 
-    function(cameraId) {
+function initializeCameras() {
+    document
+        .querySelectorAll("canvas[id^='canvas-']")
+        .forEach(canvas => {
+            if (canvas.dataset.initialized === "true") {
+                return;
+            }
 
-        setupCamera(cameraId);
+            canvas.dataset.initialized = "true";
 
-    }
+            const cameraId = Number(
+                canvas.id.replace("canvas-", "")
+            );
 
+            setupCamera(cameraId);
+        });
+}
+
+initializeCameras();
+
+window.addEventListener(
+    "dashboard-created",
+    initializeCameras
 );
