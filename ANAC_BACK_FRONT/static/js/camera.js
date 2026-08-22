@@ -604,9 +604,3 @@ function initializeCameras() {
         });
 }
 
-initializeCameras();
-
-window.addEventListener(
-    "dashboard-created",
-    initializeCameras
-);

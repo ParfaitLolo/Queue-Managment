@@ -652,14 +652,9 @@ document.querySelectorAll("nav a").forEach(a => {
         /*
             Très important :
             car chaque appui sur dashboard recrée les caméras donc les canva doivent être réinitialisés.
-
-            on utilise customEvent pour signaler que le dashboard a été créé et que les caméras doivent être initialisées.
         */
-
         if (selectedPage === "dashboard") {
-            window.dispatchEvent(
-                new CustomEvent("dashboard-created")
-            );
+            initializeCameras();
         }
     };
 });
@@ -856,12 +851,9 @@ function demarrerApplication() {
 
     /*
         Très important :
-        car le dashboard est créé au démarrage donc les canva doivent être initialisés (on le fat en envoyant un event "dashboard-created")
+        car le dashboard est créé au démarrage donc les canva doivent être initialisés
     */
-    window.dispatchEvent(
-                new CustomEvent("dashboard-created")
-            );
-
+    initializeCameras();
     clock();
 
 }
