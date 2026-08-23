@@ -185,6 +185,15 @@ h1 {
     color: #31545b;
 }
 
+.indicator.critical {
+    border-color: #dc2626;
+    background: #fee2e2;
+}
+
+.indicator.critical label {
+    color: #dc2626;
+}
+
 
 /* ================= INDICATEURS ================= */
 

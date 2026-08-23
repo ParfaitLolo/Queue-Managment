@@ -4,6 +4,27 @@
 
 // Pour le moment : 2 caméras
 const cameraIds = [1, 2];
+const dashboardMapping = {
+
+    1: {
+        countId: "dashboard-enregistrement",
+        statusId: "dashboard-enregistrement-status",
+        waitId: "dashboard-enregistrement-wait"
+    },
+
+    2: {
+        countId: "dashboard-surete",
+        statusId: "dashboard-surete-status",
+        waitId: "dashboard-surete-wait"
+    },
+
+    3: {
+        countId: "dashboard-embarquement",
+        statusId: "dashboard-embarquement-status",
+        waitId: "dashboard-embarquement-wait"
+    }
+
+};
 
 
 // ============================================================
@@ -523,48 +544,41 @@ function setupCamera(cameraId) {
             const response =
                 await fetch("/data");
 
+            if (!response.ok) {
+                throw new Error(
+                    `Erreur HTTP ${response.status}`
+                );
+            }
 
             const data =
                 await response.json();
 
-
-            // ------------------------------------------
-            // Récupérer les données de cette caméra
-            // ------------------------------------------
-
             const cameraData =
                 data[cameraId];
 
-
             if (!cameraData) {
-
                 return;
-
             }
 
-
-            // ------------------------------------------
-            // Afficher le nombre de personnes
-            // ------------------------------------------
-
+            // Donnée affichée dans la carte caméra
             personCount.textContent =
-                cameraData.person_count;
+                cameraData.person_count ?? 0;
 
-
-        }
-
-        catch (error) {
-
-            console.error(
-
-                `Erreur données caméra ${cameraId} :`,
-
-                error
-
+            // Données affichées dans les indicateurs
+            updateDashboardIndicator(
+                cameraId,
+                cameraData
             );
 
-        }
+      
 
+        } catch (error) {
+
+            console.error(
+                `Erreur données caméra ${cameraId} :`,
+                error
+            );
+        }
     }
 
 
@@ -602,5 +616,122 @@ function initializeCameras() {
 
             setupCamera(cameraId);
         });
+}
+
+
+// ============================================================
+// MISE À JOUR DES INDICATEURS DU TABLEAU DE BORD
+// ============================================================
+
+
+function updateDashboardIndicator(
+    cameraId,
+    cameraData
+) {
+
+    const config =
+        dashboardMapping[cameraId];
+
+    // Cette caméra ne possède pas de carte
+    if (!config) {
+        return;
+    }
+
+    const countElement =
+        document.getElementById(
+            config.countId
+        );
+
+    const statusElement =
+        document.getElementById(
+            config.statusId
+        );
+
+    const waitElement =
+        document.getElementById(
+            config.waitId
+        );
+
+    if (
+        !countElement
+        || !statusElement
+        || !waitElement
+    ) {
+        return;
+    }
+
+    // ------------------------------------------
+    // NOMBRE DE PERSONNES
+    // ------------------------------------------
+
+    countElement.textContent =
+        cameraData.person_count ?? 0;
+
+    // ------------------------------------------
+    // TEMPS D’ATTENTE
+    // ------------------------------------------
+
+    const waitingMinutes = Number(
+        cameraData.waiting_time_minutes ?? 0
+    );
+
+    waitElement.textContent =
+        `${waitingMinutes.toFixed(1)} min`;
+
+    // ------------------------------------------
+    // NIVEAU DE CONGESTION
+    // ------------------------------------------
+
+    const congestionLevel =
+        cameraData.congestion_level
+        || "FAIBLE";
+
+    const levelConfiguration = {
+
+        FAIBLE: {
+            text: "FAIBLE",
+            className: "green"
+        },
+
+        MODERE: {
+            text: "MODÉRÉ",
+            className: "orange"
+        },
+
+        ELEVE: {
+            text: "ÉLEVÉ",
+            className: "orange"
+        },
+
+        CRITIQUE: {
+            text: "CRITIQUE",
+            className: "critical"
+        }
+
+    };
+
+    const level =
+        levelConfiguration[congestionLevel]
+        || levelConfiguration.FAIBLE;
+
+    statusElement.textContent =
+        level.text;
+
+    // Carte contenant l’indicateur
+    const indicator =
+        countElement.closest(".indicator");
+
+    if (indicator) {
+
+        indicator.classList.remove(
+            "green",
+            "orange",
+            "critical"
+        );
+
+        indicator.classList.add(
+            level.className
+        );
+    }
 }
 

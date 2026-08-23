@@ -211,11 +211,13 @@ function dashboard() {
                     0
                 </strong>
 
-                <label>FAIBLE</label>
+                <label id="dashboard-enregistrement-status">
+                    FAIBLE
+                </label>
 
                 <p>
                     Attente :
-                    <b>05 min</b>
+                    <b id="dashboard-enregistrement-wait">05 min</b>
                 </p>
 
             </div>
@@ -229,11 +231,13 @@ function dashboard() {
                     0
                 </strong>
 
-                <label>ÉLEVÉ</label>
+                <label id="dashboard-surete-status">
+                    ÉLEVÉ
+                </label>
 
                 <p>
                     Attente :
-                    <b>17 min</b>
+                    <b id="dashboard-surete-wait">17 min</b>
                 </p>
 
             </div>
@@ -247,11 +251,13 @@ function dashboard() {
                     0
                 </strong>
 
-                <label>FAIBLE</label>
+                <label id="dashboard-embarquement-status">
+                    FAIBLE
+                </label>
 
                 <p>
                     Attente :
-                    <b>07 min</b>
+                    <b id="dashboard-embarquement-wait">07 min</b>
                 </p>
 
             </div>
