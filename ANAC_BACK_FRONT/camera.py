@@ -3,7 +3,7 @@ import queue
 import threading
 import time
 
-from ultralytics import YOLO
+from avsec_queue_manager import AVSECQueueManager
 
 # ====================================================== 
 class Camera:
@@ -104,7 +104,8 @@ class Camera:
         # MODÈLE YOLO
         # ==================================================
 
-        self.model = YOLO(model_path)
+        self.model_path = model_path
+        self.queue_manager = None
 
         # ==================================================
         # RÉGION DE DÉTECTION
@@ -115,7 +116,19 @@ class Camera:
         # ==================================================
         # RÉSULTATS
         # ==================================================
-
+        self.metrics = {
+            "queue_count": 0,
+            "current_waiting_times": {},
+            "average_active_wait_seconds": 0.0,
+            "maximum_active_wait_seconds": 0.0,
+            "average_completed_wait_seconds": 0.0,
+            "estimated_wait_seconds": 0.0,
+            "arrival_rate_per_min": 0.0,
+            "throughput_rate_per_min": 0.0,
+            "total_arrivals": 0,
+            "total_exits": 0,
+            "congestion_level": "FAIBLE"
+        }
         self.person_count = 0
         self.annotated_frame = None
 
@@ -278,7 +291,6 @@ class Camera:
     # ======================================================
     # TRAITEMENT YOLO
     # ======================================================
-
     def process_yolo(self):
 
         while not self.stop_event.is_set():
@@ -291,74 +303,106 @@ class Camera:
             except queue.Empty:
                 continue
 
-            # ------------------------------------------------
-            # RÉCUPÉRER LA RÉGION ACTUELLE
-            # ------------------------------------------------
-
             with self.lock:
+                queue_manager = self.queue_manager
 
-                if self.region is None:
-                    region = None
-                else:
-                    region = list(self.region)
+            # Aucune région : transmettre l’image brute
+            if queue_manager is None:
 
-            # ------------------------------------------------
-            # DÉTECTION YOLO
-            # ------------------------------------------------
+                processed_frame = frame
 
-            if region is not None:
+                metrics = {
+                    "queue_count": 0,
+                    "current_waiting_times": {},
+                    "average_active_wait_seconds": 0.0,
+                    "maximum_active_wait_seconds": 0.0,
+                    "average_completed_wait_seconds": 0.0,
+                    "estimated_wait_seconds": 0.0,
+                    "arrival_rate_per_min": 0.0,
+                    "throughput_rate_per_min": 0.0,
+                    "total_arrivals": 0,
+                    "total_exits": 0,
+                    "congestion_level": "FAIBLE"
+                }
+
+            else:
 
                 try:
 
-                    results = self.model.track(
-                        frame,
-                        persist=True,
-                        classes=[0],
-                        imgsz=self.imgsz,
-                        conf=0.35,
-                        verbose=False
-                    )
+                    # __call__ exécute process()
+                    results = queue_manager(frame)
 
-                    boxes = results[0].boxes
+                    processed_frame = results.plot_im
 
-                    count = (
-                        len(boxes)
-                        if boxes is not None
-                        else 0
-                    )
+                    metrics = {
+                        "queue_count":
+                            results.queue_count,
 
-                    processed_frame = (
-                        results[0].plot()
-                    )
+                        "current_waiting_times":
+                            results.current_waiting_times,
+
+                        "average_active_wait_seconds":
+                            results.average_active_wait_seconds,
+
+                        "maximum_active_wait_seconds":
+                            results.maximum_active_wait_seconds,
+
+                        "average_completed_wait_seconds":
+                            results.average_completed_wait_seconds,
+
+                        "estimated_wait_seconds":
+                            results.estimated_wait_seconds,
+
+                        "arrival_rate_per_min":
+                            results.arrival_rate_per_min,
+
+                        "throughput_rate_per_min":
+                            results.throughput_rate_per_min,
+
+                        "total_arrivals":
+                            results.total_arrivals,
+
+                        "total_exits":
+                            results.total_exits,
+
+                        "congestion_level":
+                            results.congestion_level
+                    }
 
                 except Exception as error:
 
                     print(
-                        f"Erreur YOLO caméra "
+                        f"Erreur AVSEC caméra "
                         f"{self.camera_id} : {error}"
                     )
 
-                    count = 0
                     processed_frame = frame
 
-            else:
-
-                count = 0
-                processed_frame = frame
-
-            # ------------------------------------------------
-            # SAUVEGARDER LE RÉSULTAT
-            # ------------------------------------------------
+                    with self.lock:
+                        metrics = self.metrics.copy()
 
             with self.lock:
 
-                self.person_count = count
+                # Éviter qu’un ancien manager écrive ses
+                # résultats après un changement de région.
+                if (
+                    queue_manager is not None
+                    and queue_manager
+                    is not self.queue_manager
+                ):
+                    continue
+
+                self.person_count = metrics[
+                    "queue_count"
+                ]
+
+                self.metrics = metrics
                 self.annotated_frame = (
                     processed_frame
                 )
 
                 self.processed_frame_id += 1
-
+                
     # ======================================================
     # GÉNÉRATEUR MJPEG
     # ======================================================
@@ -453,14 +497,51 @@ class Camera:
 
     def set_region(self, region):
 
+        if region is None:
+
+            with self.lock:
+                self.region = None
+                self.queue_manager = None
+
+            print(
+                f"Caméra {self.camera_id} "
+                f"→ région supprimée"
+            )
+
+            return
+
+        normalized_region = [
+            (
+                int(point[0]),
+                int(point[1])
+            )
+            for point in region
+        ]
+
+        # La création peut prendre quelques secondes,
+        # car le modèle YOLO est chargé ici.
+        new_manager = AVSECQueueManager(
+            show=False,
+            region=normalized_region,
+            model=self.model_path,
+            classes=[0],
+            imgsz=self.imgsz,
+            conf=0.35,
+            line_width=3,
+            verbose=False,
+            metric_window=60,
+            lost_timeout=2
+        )
+
         with self.lock:
-            self.region = region
+            self.region = normalized_region
+            self.queue_manager = new_manager
 
         print(
             f"Caméra {self.camera_id} "
-            f"→ nouvelle région : {region}"
+            f"→ nouvelle région : "
+            f"{normalized_region}"
         )
-
     # ======================================================
     # RÉCUPÉRER LES DONNÉES
     # ======================================================
@@ -468,13 +549,70 @@ class Camera:
     def get_data(self):
 
         with self.lock:
-
+            print(f"Caméra {self.camera_id} → récupération des données")  
+            print(f"Caméra {self.camera_id} → métriques : {self.metrics}")  
             return {
                 "camera_id": self.camera_id,
-                "person_count": self.person_count,
+
+                "person_count":
+                    self.metrics["queue_count"],
+
+                "waiting_time_seconds":
+                    self.metrics[
+                        "estimated_wait_seconds"
+                    ],
+
+                "waiting_time_minutes":
+                    self.metrics[
+                        "estimated_wait_seconds"
+                    ] / 60.0,
+
+                "average_active_wait_seconds":
+                    self.metrics[
+                        "average_active_wait_seconds"
+                    ],
+
+                "maximum_active_wait_seconds":
+                    self.metrics[
+                        "maximum_active_wait_seconds"
+                    ],
+
+                "average_completed_wait_seconds":
+                    self.metrics[
+                        "average_completed_wait_seconds"
+                    ],
+
+                "arrival_rate_per_min":
+                    self.metrics[
+                        "arrival_rate_per_min"
+                    ],
+
+                "throughput_rate_per_min":
+                    self.metrics[
+                        "throughput_rate_per_min"
+                    ],
+
+                "total_arrivals":
+                    self.metrics["total_arrivals"],
+
+                "total_exits":
+                    self.metrics["total_exits"],
+
+                "congestion_level":
+                    self.metrics[
+                        "congestion_level"
+                    ],
+
+                "current_waiting_times":
+                    self.metrics[
+                        "current_waiting_times"
+                    ],
+
                 "region": self.region,
+
                 "source_fps": self.source_fps,
                 "stream_fps": self.stream_fps,
+
                 "resolution": {
                     "width": self.frame_width,
                     "height": self.frame_height
