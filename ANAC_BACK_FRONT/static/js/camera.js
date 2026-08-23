@@ -3,34 +3,71 @@
 // ============================================================
 
 // Pour le moment : 2 caméras
-const cameraNames = {
-    1: "ENREGISTREMENT",
-    2: "CONTRÔLE SÛRETÉ NORD",
-    3: "EMBARQUEMENT",
-    4: "HALL DÉPART"
-};
 const cameraIds = [1, 2, 3, 4];
 const dashboardMapping = {
 
     1: {
         countId: "dashboard-enregistrement",
         statusId: "dashboard-enregistrement-status",
-        waitId: "dashboard-enregistrement-wait"
+        waitId: "dashboard-enregistrement-wait",
+        arrivalId: "dashboard-enregistrement-arrival",
+        throughputId: "dashboard-enregistrement-throughput",
+        maxWaitId: "dashboard-enregistrement-max-wait",
+        trendId: "dashboard-enregistrement-trend"
     },
 
     2: {
         countId: "dashboard-surete",
         statusId: "dashboard-surete-status",
-        waitId: "dashboard-surete-wait"
+        waitId: "dashboard-surete-wait",
+        arrivalId: "dashboard-surete-arrival",
+        throughputId: "dashboard-surete-throughput",
+        maxWaitId: "dashboard-surete-max-wait",
+        trendId: "dashboard-surete-trend"
     },
 
     3: {
         countId: "dashboard-embarquement",
         statusId: "dashboard-embarquement-status",
-        waitId: "dashboard-embarquement-wait"
+        waitId: "dashboard-embarquement-wait",
+        arrivalId: "dashboard-embarquement-arrival",
+        throughputId: "dashboard-embarquement-throughput",
+        maxWaitId: "dashboard-embarquement-max-wait",
+        trendId: "dashboard-embarquement-trend"
     },
-    4: {countId: "dashboard-hall-depart", statusId: "dashboard-hall-depart-status", waitId: "dashboard-hall-depart-wait"}
+    4: {
+        countId: "dashboard-hall-depart",
+        statusId: "dashboard-hall-depart-status",
+        waitId: "dashboard-hall-depart-wait",
+        arrivalId: "dashboard-hall-depart-arrival",
+        throughputId: "dashboard-hall-depart-throughput",
+        maxWaitId: "dashboard-hall-depart-max-wait",
+        trendId: "dashboard-hall-depart-trend"
+    }
 
+};
+const cameraNames = {
+    1: "ENREGISTREMENT",
+    2: "CONTRÔLE SÛRETÉ NORD",
+    3: "EMBARQUEMENT",
+    4: "HALL DÉPART"
+};
+const forecastConfiguration = {
+
+    1: {
+        name: "Enregistrement"
+    },
+
+    2: {
+        name: "Contrôle sûreté"
+    },
+
+    3: {
+        name: "Embarquement"
+    },
+    4: {
+        name: "Hall départ"
+    }   
 };
 
 
@@ -561,8 +598,16 @@ function setupCamera(cameraId) {
                 await response.json();
 
             // Mettre à jour les alertes
-
             updateAlerts(data);
+
+            // Mettre à jour les prévisions contient également updaterecommandation()
+            updateForecast(data);
+            // Mettre à jour les indicateurs du tableau de bord
+            updateDashboardIndicator(
+                cameraId,
+                data[cameraId]
+            );
+
 
             const cameraData =
                 data[cameraId];
@@ -571,15 +616,11 @@ function setupCamera(cameraId) {
                 return;
             }
 
-            // Donnée affichée dans la carte caméra
+            // Mise à jour Donnée affichée dans la carte caméra
             personCount.textContent =
                 cameraData.person_count ?? 0;
 
-            // Données affichées dans les indicateurs
-            updateDashboardIndicator(
-                cameraId,
-                cameraData
-            );
+    
 
       
 
@@ -634,7 +675,6 @@ function initializeCameras() {
 // MISE À JOUR DES INDICATEURS DU TABLEAU DE BORD
 // ============================================================
 
-
 function updateDashboardIndicator(
     cameraId,
     cameraData
@@ -647,6 +687,10 @@ function updateDashboardIndicator(
     if (!config) {
         return;
     }
+
+    // ==========================================
+    // RÉCUPÉRATION DES ÉLÉMENTS HTML
+    // ==========================================
 
     const countElement =
         document.getElementById(
@@ -663,6 +707,27 @@ function updateDashboardIndicator(
             config.waitId
         );
 
+    const arrivalElement =
+        document.getElementById(
+            config.arrivalId
+        );
+
+    const throughputElement =
+        document.getElementById(
+            config.throughputId
+        );
+
+    const maxWaitElement =
+        document.getElementById(
+            config.maxWaitId
+        );
+
+    const trendElement =
+        document.getElementById(
+            config.trendId
+        );
+
+    // Les trois éléments principaux sont obligatoires
     if (
         !countElement
         || !statusElement
@@ -671,27 +736,103 @@ function updateDashboardIndicator(
         return;
     }
 
-    // ------------------------------------------
-    // NOMBRE DE PERSONNES
-    // ------------------------------------------
+    // ==========================================
+    // RÉCUPÉRATION DES DONNÉES
+    // ==========================================
 
-    countElement.textContent =
-        cameraData.person_count ?? 0;
-
-    // ------------------------------------------
-    // TEMPS D’ATTENTE
-    // ------------------------------------------
+    const personCount = Number(
+        cameraData.person_count ?? 0
+    );
 
     const waitingMinutes = Number(
         cameraData.waiting_time_minutes ?? 0
     );
 
+    const arrivalRate = Number(
+        cameraData.arrival_rate_per_min ?? 0
+    );
+
+    const throughputRate = Number(
+        cameraData.throughput_rate_per_min ?? 0
+    );
+
+    const maximumWaitMinutes =
+        Number(
+            cameraData
+                .maximum_active_wait_seconds
+            ?? 0
+        ) / 60;
+
+    // ==========================================
+    // AFFICHAGE DES DONNÉES
+    // ==========================================
+
+    countElement.textContent =
+        personCount;
+
     waitElement.textContent =
         `${waitingMinutes.toFixed(1)} min`;
 
-    // ------------------------------------------
+    if (arrivalElement) {
+        arrivalElement.textContent =
+            `${arrivalRate.toFixed(1)} pax/min`;
+    }
+
+    if (throughputElement) {
+        throughputElement.textContent =
+            `${throughputRate.toFixed(1)} pax/min`;
+    }
+
+    if (maxWaitElement) {
+        maxWaitElement.textContent =
+            `${maximumWaitMinutes.toFixed(1)} min`;
+    }
+
+    // ==========================================
+    // TENDANCE DE LA FILE
+    // ==========================================
+
+    const flowDifference =
+        arrivalRate - throughputRate;
+
+    let trendText;
+    let trendClass;
+
+    if (flowDifference > 0.5) {
+
+        trendText = "↗ En augmentation";
+        trendClass = "trend-up";
+
+    } else if (flowDifference < -0.5) {
+
+        trendText = "↘ En diminution";
+        trendClass = "trend-down";
+
+    } else {
+
+        trendText = "→ Stable";
+        trendClass = "trend-stable";
+    }
+
+    if (trendElement) {
+
+        trendElement.textContent =
+            trendText;
+
+        trendElement.classList.remove(
+            "trend-up",
+            "trend-down",
+            "trend-stable"
+        );
+
+        trendElement.classList.add(
+            trendClass
+        );
+    }
+
+    // ==========================================
     // NIVEAU DE CONGESTION
-    // ------------------------------------------
+    // ==========================================
 
     const congestionLevel =
         cameraData.congestion_level
@@ -728,7 +869,10 @@ function updateDashboardIndicator(
     statusElement.textContent =
         level.text;
 
-    // Carte contenant l’indicateur
+    // ==========================================
+    // COULEUR DE LA CARTE
+    // ==========================================
+
     const indicator =
         countElement.closest(".indicator");
 
@@ -745,7 +889,6 @@ function updateDashboardIndicator(
         );
     }
 }
-
 
 // ============================================================
 // MISE À JOUR DES ALERTES
@@ -975,4 +1118,367 @@ function updateAlerts(data) {
             );
         }
     );
+}
+
+// ============================================================
+// PREDICTION DU NOMBRE DE PERSONNES DANS LA FILE
+// ============================================================
+
+
+function calculateForecast(
+    personCount,
+    arrivalRate,
+    throughputRate,
+    minutes
+) {
+
+    const netFlow =
+        arrivalRate - throughputRate;
+
+    const predictedCount =
+        personCount
+        + netFlow * minutes;
+
+    return Math.max(
+        0,
+        Math.round(predictedCount)
+    );
+}
+
+function calculateForecastRisk(
+    cameraData,
+    currentCount,
+    predictedCount
+) {
+
+    const congestionLevel =
+        cameraData.congestion_level
+        || "FAIBLE";
+
+    const growth =
+        predictedCount - currentCount;
+
+    if (
+        congestionLevel === "CRITIQUE"
+        || growth >= 20
+    ) {
+        return {
+            level: "CRITIQUE",
+            className: "risk-critical",
+            priority: 4
+        };
+    }
+
+    if (
+        congestionLevel === "ELEVE"
+        || growth >= 10
+    ) {
+        return {
+            level: "ÉLEVÉ",
+            className: "risk-high",
+            priority: 3
+        };
+    }
+
+    if (
+        congestionLevel === "MODERE"
+        || growth >= 5
+    ) {
+        return {
+            level: "MODÉRÉ",
+            className: "risk-moderate",
+            priority: 2
+        };
+    }
+
+    return {
+        level: "FAIBLE",
+        className: "risk-low",
+        priority: 1
+    };
+}
+
+function updateForecast(data) {
+
+    const forecasts = [];
+
+    for (
+        const [cameraId, config]
+        of Object.entries(forecastConfiguration)
+    ) {
+
+        const cameraData =
+            data[cameraId];
+
+        if (!cameraData) {
+            continue;
+        }
+
+        const personCount = Number(
+            cameraData.person_count ?? 0
+        );
+
+        const arrivalRate = Number(
+            cameraData.arrival_rate_per_min ?? 0
+        );
+
+        const throughputRate = Number(
+            cameraData.throughput_rate_per_min ?? 0
+        );
+
+        const forecast15 =
+            calculateForecast(
+                personCount,
+                arrivalRate,
+                throughputRate,
+                15
+            );
+
+        const forecast30 =
+            calculateForecast(
+                personCount,
+                arrivalRate,
+                throughputRate,
+                30
+            );
+
+        const risk =
+            calculateForecastRisk(
+                cameraData,
+                personCount,
+                forecast30
+            );
+
+        const currentElement =
+            document.getElementById(
+                `forecast-current-${cameraId}`
+            );
+
+        const forecast15Element =
+            document.getElementById(
+                `forecast-15-${cameraId}`
+            );
+
+        const forecast30Element =
+            document.getElementById(
+                `forecast-30-${cameraId}`
+            );
+
+        const riskElement =
+            document.getElementById(
+                `forecast-risk-${cameraId}`
+            );
+
+        if (currentElement) {
+            currentElement.textContent =
+                personCount;
+        }
+
+        if (forecast15Element) {
+            forecast15Element.textContent =
+                forecast15;
+        }
+
+        if (forecast30Element) {
+            forecast30Element.textContent =
+                forecast30;
+        }
+
+        if (riskElement) {
+
+            riskElement.textContent =
+                risk.level;
+
+            riskElement.classList.remove(
+                "risk-low",
+                "risk-moderate",
+                "risk-high",
+                "risk-critical"
+            );
+
+            riskElement.classList.add(
+                risk.className
+            );
+        }
+
+        forecasts.push({
+
+            cameraId:
+                Number(cameraId),
+
+            zoneName:
+                config.name,
+
+            currentCount:
+                personCount,
+
+            forecast15:
+                forecast15,
+
+            forecast30:
+                forecast30,
+
+            arrivalRate:
+                arrivalRate,
+
+            throughputRate:
+                throughputRate,
+
+            waitingMinutes:
+                Number(
+                    cameraData.waiting_time_minutes
+                    ?? 0
+                ),
+
+            risk:
+                risk
+
+        });
+    }
+
+    updateRecommendation(forecasts);
+}
+// ============================================================
+// RECOMMANDATION D'ACTION
+// ============================================================
+
+
+function updateRecommendation(forecasts) {
+
+    const panel =
+        document.getElementById(
+            "recommendation-panel"
+        );
+
+    const messageElement =
+        document.getElementById(
+            "recommendation-message"
+        );
+
+    const detailsElement =
+        document.getElementById(
+            "recommendation-details"
+        );
+
+    const applyButton =
+        document.getElementById(
+            "recommendation-apply"
+        );
+
+    if (
+        !panel
+        || !messageElement
+        || !detailsElement
+        || !applyButton
+    ) {
+        return;
+    }
+
+    if (forecasts.length === 0) {
+
+        messageElement.textContent =
+            "Données insuffisantes";
+
+        detailsElement.textContent =
+            "Aucune donnée de caméra disponible.";
+
+        applyButton.disabled = true;
+
+        return;
+    }
+
+    const sortedForecasts =
+        [...forecasts].sort(
+            function(first, second) {
+
+                if (
+                    second.risk.priority
+                    !== first.risk.priority
+                ) {
+                    return (
+                        second.risk.priority
+                        - first.risk.priority
+                    );
+                }
+
+                return (
+                    second.forecast30
+                    - first.forecast30
+                );
+            }
+        );
+
+    const worstZone =
+        sortedForecasts[0];
+
+    panel.classList.remove(
+        "recommendation-low",
+        "recommendation-moderate",
+        "recommendation-high",
+        "recommendation-critical"
+    );
+
+    if (worstZone.risk.level === "CRITIQUE") {
+
+        panel.classList.add(
+            "recommendation-critical"
+        );
+
+        messageElement.textContent =
+            `Ouvrir immédiatement un poste supplémentaire à ${worstZone.zoneName}`;
+
+        detailsElement.textContent =
+            `${worstZone.currentCount} personnes actuellement, `
+            + `${worstZone.forecast30} prévues dans 30 minutes. `
+            + `Arrivées : ${worstZone.arrivalRate.toFixed(1)} pax/min, `
+            + `sorties : ${worstZone.throughputRate.toFixed(1)} pax/min.`;
+
+        applyButton.disabled = false;
+
+    } else if (worstZone.risk.level === "ÉLEVÉ") {
+
+        panel.classList.add(
+            "recommendation-high"
+        );
+
+        messageElement.textContent =
+            `Préparer l’ouverture d’un poste à ${worstZone.zoneName}`;
+
+        detailsElement.textContent =
+            `La file pourrait atteindre `
+            + `${worstZone.forecast30} personnes dans 30 minutes.`;
+
+        applyButton.disabled = false;
+
+    } else if (worstZone.risk.level === "MODÉRÉ") {
+
+        panel.classList.add(
+            "recommendation-moderate"
+        );
+
+        messageElement.textContent =
+            `Surveiller l’évolution à ${worstZone.zoneName}`;
+
+        detailsElement.textContent =
+            `Projection à 15 minutes : `
+            + `${worstZone.forecast15} personnes. `
+            + `Projection à 30 minutes : `
+            + `${worstZone.forecast30} personnes.`;
+
+        applyButton.disabled = true;
+
+    } else {
+
+        panel.classList.add(
+            "recommendation-low"
+        );
+
+        messageElement.textContent =
+            "Aucune action immédiate nécessaire";
+
+        detailsElement.textContent =
+            "Les flux observés sont actuellement maîtrisés.";
+
+        applyButton.disabled = true;
+    }
 }

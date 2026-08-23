@@ -220,6 +220,38 @@ function dashboard() {
                     <b id="dashboard-enregistrement-wait">05 min</b>
                 </p>
 
+                <div class="indicator-details">
+
+                    <p>
+                        Arrivées :
+                        <b id="dashboard-enregistrement-arrival">
+                            0 pax/min
+                        </b>
+                    </p>
+
+                    <p>
+                        Traitement :
+                        <b id="dashboard-enregistrement-throughput">
+                            0 pax/min
+                        </b>
+                    </p>
+
+                    <p>
+                        Attente maximale :
+                        <b id="dashboard-enregistrement-max-wait">
+                            0 min
+                        </b>
+                    </p>
+
+                    <p>
+                        Tendance :
+                        <b id="dashboard-enregistrement-trend">
+                            → Stable
+                        </b>
+                    </p>
+
+                </div>
+
             </div>
 
 
@@ -240,6 +272,38 @@ function dashboard() {
                     <b id="dashboard-surete-wait">17 min</b>
                 </p>
 
+                <div class="indicator-details">
+
+                    <p>
+                        Arrivées :
+                        <b id="dashboard-surete-arrival">
+                            0 pax/min
+                        </b>
+                    </p>
+
+                    <p>
+                        Traitement :
+                        <b id="dashboard-surete-throughput">
+                            0 pax/min
+                        </b>
+                    </p>
+
+                    <p>
+                        Attente maximale :
+                        <b id="dashboard-surete-max-wait">
+                            0 min
+                        </b>
+                    </p>
+
+                    <p>
+                        Tendance :
+                        <b id="dashboard-surete-trend">
+                            ↑ En hausse
+                        </b>
+                    </p>
+
+                </div>      
+
             </div>
 
 
@@ -259,11 +323,41 @@ function dashboard() {
                     Attente :
                     <b id="dashboard-embarquement-wait">07 min</b>
                 </p>
+            
+                <div class="indicator-details">
+                    <p>
+                        Arrivées :
+                        <b id="dashboard-embarquement-arrival">
+                            0 pax/min
+                        </b>
+                    </p>
+
+                    <p>
+                        Traitement :
+                        <b id="dashboard-embarquement-throughput">
+                            0 pax/min
+                        </b>
+                    </p>
+
+                    <p>
+                        Attente maximale :
+                        <b id="dashboard-embarquement-max-wait">
+                            0 min
+                        </b>
+                    </p>
+
+                    <p>
+                        Tendance :
+                        <b id="dashboard-embarquement-trend">
+                            ↓ En baisse
+                        </b>
+                    </p>        
+
+                </div>  
 
             </div>
 
-
-                <div class="indicator green">
+            <div class="indicator green">
 
                 <span>HALL DÉPART</span>
 
@@ -279,6 +373,38 @@ function dashboard() {
                     Attente :
                     <b id="dashboard-hall-depart-wait">07 min</b>
                 </p>
+
+                <div class="indicator-details">
+
+                    <p>
+                        Arrivées :
+                        <b id="dashboard-hall-depart-arrival">
+                            0 pax/min
+                        </b>
+                    </p>
+
+                    <p>
+                        Traitement :
+                        <b id="dashboard-hall-depart-throughput">
+                            0 pax/min
+                        </b>
+                    </p>
+
+                    <p>
+                        Attente maximale :
+                        <b id="dashboard-hall-depart-max-wait">
+                            0 min
+                        </b>
+                    </p>
+
+                    <p>
+                        Tendance :
+                        <b id="dashboard-hall-depart-trend">
+                            → Stable
+                        </b>
+                    </p>
+
+                </div>
 
             </div>
 
@@ -453,58 +579,94 @@ function pageCameras() {
 
 function forecast() {
 
+    const forecastZones = [
+        {
+            cameraId: 1,
+            name: "Enregistrement"
+        },
+        {
+            cameraId: 2,
+            name: "Contrôle sûreté"
+        },
+        {
+            cameraId: 3,
+            name: "Embarquement"
+        }
+    ];
+
+    const rows = forecastZones
+        .map(function(zone) {
+
+            return `
+                <tr id="forecast-row-${zone.cameraId}">
+
+                    <td>
+                        ${zone.name}
+                    </td>
+
+                    <td id="forecast-current-${zone.cameraId}">
+                        0
+                    </td>
+
+                    <td id="forecast-15-${zone.cameraId}">
+                        0
+                    </td>
+
+                    <td id="forecast-30-${zone.cameraId}">
+                        0
+                    </td>
+
+                    <td>
+                        <span
+                            id="forecast-risk-${zone.cameraId}"
+                            class="forecast-risk risk-low"
+                        >
+                            FAIBLE
+                        </span>
+                    </td>
+
+                </tr>
+            `;
+
+        })
+        .join("");
+
     return `
 
-    <div class="panel">
+        <div class="panel">
 
-        <h2>
-            PRÉVISION D'AFFLUENCE
-        </h2>
+            <h2>
+                PRÉVISION D'AFFLUENCE
+            </h2>
 
+            <table>
 
-        <table>
+                <thead>
 
-            <tr>
-                <th>ZONE</th>
-                <th>ACTUEL</th>
-                <th>+15 MIN</th>
-                <th>+30 MIN</th>
-                <th>RISQUE</th>
-            </tr>
+                    <tr>
+                        <th>ZONE</th>
+                        <th>ACTUEL</th>
+                        <th>+15 MIN</th>
+                        <th>+30 MIN</th>
+                        <th>RISQUE</th>
+                    </tr>
 
+                </thead>
 
-            <tr>
-                <td>Enregistrement</td>
-                <td>76</td>
-                <td>85</td>
-                <td>94</td>
-                <td>Faible</td>
-            </tr>
+                <tbody>
+                    ${rows}
+                </tbody>
 
+            </table>
 
-            <tr>
-                <td>Contrôle sûreté</td>
-                <td>142</td>
-                <td>168</td>
-                <td>195</td>
-                <td>Très élevé</td>
-            </tr>
+            <p class="forecast-information">
+                Projection calculée à partir des débits
+                d’arrivée et de sortie actuels.
+            </p>
 
-
-            <tr>
-                <td>Embarquement</td>
-                <td>58</td>
-                <td>62</td>
-                <td>72</td>
-                <td>Modéré</td>
-            </tr>
-
-        </table>
-
-    </div>
+        </div>
 
     `;
-
 }
 
 
@@ -516,46 +678,45 @@ function recommendation() {
 
     return `
 
-    <section class="recommendation">
+        <section
+            id="recommendation-panel"
+            class="recommendation"
+        >
 
-        <div>
+            <div class="recommendation-title">
 
-            🤖
-            <strong>
-                RECOMMANDATION IA
-            </strong>
+                <span>🤖</span>
 
-        </div>
+                <strong>
+                    RECOMMANDATION
+                </strong>
 
+            </div>
 
-        <div>
+            <div class="recommendation-content">
 
-            <h3>
-                Ouvrir un poste supplémentaire
-                au contrôle sûreté
-            </h3>
+                <h3 id="recommendation-message">
+                    Analyse des données en cours...
+                </h3>
 
-            <p>
-                Cette recommandation viendra
-                du module Python.
-            </p>
+                <p id="recommendation-details">
+                    En attente des premières mesures.
+                </p>
 
-        </div>
+            </div>
 
+            <button
+                id="recommendation-apply"
+                type="button"
+                disabled
+            >
+                APPLIQUER
+            </button>
 
-        <button
-            onclick="alert('Commande à connecter à Flask')">
-
-            APPLIQUER
-
-        </button>
-
-    </section>
+        </section>
 
     `;
-
 }
-
 
 /* =====================================================
    PAGES
