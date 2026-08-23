@@ -36,7 +36,17 @@ cameras = {
     2: Camera(
         camera_id=2,
         source="12.mp4"
-    )
+    ),
+
+    3: Camera(
+        camera_id=3,
+        source="13.mp4"
+    ),
+
+    4: Camera(
+        camera_id=4,
+        source="14.mp4"
+    ),
 }
 
 # Démarrer toutes les caméras

@@ -3,7 +3,13 @@
 // ============================================================
 
 // Pour le moment : 2 caméras
-const cameraIds = [1, 2];
+const cameraNames = {
+    1: "ENREGISTREMENT",
+    2: "CONTRÔLE SÛRETÉ NORD",
+    3: "EMBARQUEMENT",
+    4: "HALL DÉPART"
+};
+const cameraIds = [1, 2, 3, 4];
 const dashboardMapping = {
 
     1: {
@@ -22,7 +28,8 @@ const dashboardMapping = {
         countId: "dashboard-embarquement",
         statusId: "dashboard-embarquement-status",
         waitId: "dashboard-embarquement-wait"
-    }
+    },
+    4: {countId: "dashboard-hall-depart", statusId: "dashboard-hall-depart-status", waitId: "dashboard-hall-depart-wait"}
 
 };
 
@@ -553,6 +560,10 @@ function setupCamera(cameraId) {
             const data =
                 await response.json();
 
+            // Mettre à jour les alertes
+
+            updateAlerts(data);
+
             const cameraData =
                 data[cameraId];
 
@@ -735,3 +746,233 @@ function updateDashboardIndicator(
     }
 }
 
+
+// ============================================================
+// MISE À JOUR DES ALERTES
+// ============================================================
+
+
+let lastAlertsSignature = "";
+
+
+function updateAlerts(data) {
+
+    const alertsContainer =
+        document.getElementById(
+            "alerts-list"
+        );
+
+    if (!alertsContainer) {
+        return;
+    }
+
+    const levelConfiguration = {
+
+        CRITIQUE: {
+            priority: 3,
+            className: "critical",
+            icon: "⚠",
+            title: "Congestion critique",
+            recommendation:
+                "Intervention immédiate recommandée"
+        },
+
+        ELEVE: {
+            priority: 2,
+            className: "warning",
+            icon: "⚠",
+            title: "Charge élevée",
+            recommendation:
+                "Renforcement des ressources recommandé"
+        },
+
+        MODERE: {
+            priority: 1,
+            className: "info",
+            icon: "●",
+            title: "Affluence modérée",
+            recommendation:
+                "Surveillance recommandée"
+        }
+
+    };
+
+    const activeAlerts = [];
+
+    for (
+        const [cameraId, cameraData]
+        of Object.entries(data)
+    ) {
+
+        const congestionLevel =
+            cameraData.congestion_level
+            || "FAIBLE";
+
+        const configuration =
+            levelConfiguration[
+                congestionLevel
+            ];
+
+        // Pas d’alerte pour le niveau FAIBLE
+        if (!configuration) {
+            continue;
+        }
+
+        activeAlerts.push({
+            cameraId: cameraId,
+
+            zone:
+                cameraNames[cameraId]
+                || `CAMÉRA ${cameraId}`,
+
+            count:
+                Number(
+                    cameraData.person_count ?? 0
+                ),
+
+            waitingMinutes:
+                Number(
+                    cameraData
+                        .waiting_time_minutes
+                    ?? 0
+                ),
+
+            congestionLevel:
+                congestionLevel,
+
+            ...configuration
+        });
+    }
+
+    // Alertes les plus graves en premier
+    activeAlerts.sort(
+        function (alertA, alertB) {
+
+            return (
+                alertB.priority
+                - alertA.priority
+            );
+        }
+    );
+
+    // Limiter à trois alertes affichées
+    const displayedAlerts =
+        activeAlerts.slice(0, 3);
+
+    // Éviter de reconstruire inutilement le HTML
+    const signature = JSON.stringify(
+        displayedAlerts.map(
+            function (alert) {
+
+                return {
+                    cameraId: alert.cameraId,
+                    level: alert.congestionLevel,
+                    count: alert.count,
+                    waiting:
+                        alert.waitingMinutes.toFixed(1)
+                };
+            }
+        )
+    );
+
+    if (signature === lastAlertsSignature) {
+        return;
+    }
+
+    lastAlertsSignature = signature;
+
+    alertsContainer.replaceChildren();
+
+    // ------------------------------------------
+    // AUCUNE ALERTE
+    // ------------------------------------------
+
+    if (displayedAlerts.length === 0) {
+
+        const emptyMessage =
+            document.createElement("div");
+
+        emptyMessage.className =
+            "alert-empty";
+
+        emptyMessage.textContent =
+            "✓ Aucune alerte en cours";
+
+        alertsContainer.appendChild(
+            emptyMessage
+        );
+
+        return;
+    }
+
+    // ------------------------------------------
+    // CRÉATION DES ALERTES
+    // ------------------------------------------
+
+    displayedAlerts.forEach(
+        function (alertData) {
+
+            const alertElement =
+                document.createElement("div");
+
+            alertElement.className =
+                `alert ${alertData.className}`;
+
+            const header =
+                document.createElement("div");
+
+            header.className =
+                "alert-header";
+
+            const icon =
+                document.createElement("span");
+
+            icon.className =
+                "alert-icon";
+
+            icon.textContent =
+                alertData.icon;
+
+            const zone =
+                document.createElement("b");
+
+            zone.textContent =
+                alertData.zone;
+
+            header.append(
+                icon,
+                zone
+            );
+
+            const title =
+                document.createElement("h3");
+
+            title.textContent =
+                alertData.title;
+
+            const details =
+                document.createElement("p");
+
+            details.textContent =
+                `${alertData.count} personnes · `
+                + `${alertData.waitingMinutes.toFixed(1)} min d’attente`;
+
+            const recommendation =
+                document.createElement("small");
+
+            recommendation.textContent =
+                alertData.recommendation;
+
+            alertElement.append(
+                header,
+                title,
+                details,
+                recommendation
+            );
+
+            alertsContainer.appendChild(
+                alertElement
+            );
+        }
+    );
+}

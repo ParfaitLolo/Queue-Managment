@@ -194,6 +194,33 @@ h1 {
     color: #dc2626;
 }
 
+.alert-empty {
+    padding: 24px;
+
+    color: #15803d;
+    background: #f0fdf4;
+
+    border: 1px solid #bbf7d0;
+    border-radius: 10px;
+
+    text-align: center;
+}
+
+.alert-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.alert-icon {
+    font-size: 20px;
+}
+
+.alert small {
+    display: block;
+    margin-top: 8px;
+    opacity: 0.8;
+}
 
 /* ================= INDICATEURS ================= */
 

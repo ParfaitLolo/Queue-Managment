@@ -263,15 +263,22 @@ function dashboard() {
             </div>
 
 
-            <div class="total">
+                <div class="indicator green">
 
-                <span>TOTAL AÉROPORT</span>
+                <span>HALL DÉPART</span>
 
-                <strong id="dashboard-total">
+                <strong id="dashboard-hall-depart">
                     0
                 </strong>
 
-                <p> Passagers</p>
+                <label id="dashboard-hall-depart-status">
+                    FAIBLE
+                </label>
+
+                <p>
+                    Attente :
+                    <b id="dashboard-hall-depart-wait">07 min</b>
+                </p>
 
             </div>
 
@@ -310,61 +317,20 @@ function dashboard() {
 
 
         <!-- ALERTES -->
-
         <div class="alerts">
 
             <h2>ALERTES EN COURS</h2>
 
+            <div id="alerts-list">
 
-            <div class="alert critical">
-
-                ⚠
-                <b>CONTRÔLE SÛRETÉ</b>
-
-                <h3>
-                    Congestion critique
-                </h3>
-
-                <p>
-                    Temps d'attente &gt; 20 min
-                </p>
-
-            </div>
-
-
-            <div class="alert warning">
-
-                ⚠
-                <b>CONTRÔLE SÛRETÉ</b>
-
-                <h3>
-                    Charge élevée
-                </h3>
-
-                <p>
-                    Temps d'attente &gt; 15 min
-                </p>
-
-            </div>
-
-
-            <div class="alert info">
-
-                ●
-                <b>EMBARQUEMENT</b>
-
-                <h3>
-                    Affluence modérée
-                </h3>
-
-                <p>
-                    Surveillance recommandée
-                </p>
+                <div class="alert-empty">
+                    Aucune alerte en cours
+                </div>
 
             </div>
 
         </div>
-
+    
     </section>
 
 
