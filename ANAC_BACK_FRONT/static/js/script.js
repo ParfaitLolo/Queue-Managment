@@ -1372,6 +1372,28 @@ function pageForecast() {
    RECOMMANDATION
 ===================================================== */
 
+function pageAlerts() {
+
+    return `
+        <div class="page alerts-page">
+
+            <div class="alerts">
+
+                <h2>ALERTES EN COURS</h2>
+
+                <div id="alerts-list">
+
+                    <div class="alert-empty">
+                        Aucune alerte en cours
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    `;
+}
 function recommendation() {
 
     return `
@@ -1442,8 +1464,8 @@ function page(p) {
         return pageForecast();
     }
 
-    if (p === "Alertes") {
-        return forecast();
+    if (p === "alertes") {
+        return pageAlerts();
     }
 
     if (p === "Rapports") {
