@@ -612,6 +612,8 @@ function setupCamera(cameraId) {
             updateFluxPage(data);
             // Mettre à jou la page file attente
             updateQueuePage(data);
+            // Graphiques et indicateurs de la page Prévisions
+            updateForecastPage(data);
 
 
 

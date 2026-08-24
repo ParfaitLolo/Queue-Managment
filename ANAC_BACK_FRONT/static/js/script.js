@@ -136,6 +136,28 @@ let cameraConfigurations = [
 
 ];
 
+let forecastEvolutionChart = null;
+
+let forecastWaitChart = null;
+
+const forecastZones = [
+
+    {
+        cameraId: 1,
+        name: "Enregistrement"
+    },
+
+    {
+        cameraId: 2,
+        name: "Contrôle sûreté"
+    },
+
+    {
+        cameraId: 3,
+        name: "Embarquement"
+    }
+
+];
 
 /* =====================================================
    VARIABLES POUR LES ZONES
@@ -1111,57 +1133,55 @@ function pageCameras() {
 
 function forecast() {
 
-    const forecastZones = [
-        {
-            cameraId: 1,
-            name: "Enregistrement"
-        },
-        {
-            cameraId: 2,
-            name: "Contrôle sûreté"
-        },
-        {
-            cameraId: 3,
-            name: "Embarquement"
-        }
-    ];
+    const rows =
+        forecastZones
+            .map(function(zone) {
 
-    const rows = forecastZones
-        .map(function(zone) {
+                return `
 
-            return `
-                <tr id="forecast-row-${zone.cameraId}">
+                    <tr
+                        id="forecast-row-${zone.cameraId}"
+                    >
 
-                    <td>
-                        ${zone.name}
-                    </td>
+                        <td>
+                            ${zone.name}
+                        </td>
 
-                    <td id="forecast-current-${zone.cameraId}">
-                        0
-                    </td>
-
-                    <td id="forecast-15-${zone.cameraId}">
-                        0
-                    </td>
-
-                    <td id="forecast-30-${zone.cameraId}">
-                        0
-                    </td>
-
-                    <td>
-                        <span
-                            id="forecast-risk-${zone.cameraId}"
-                            class="forecast-risk risk-low"
+                        <td
+                            id="forecast-current-${zone.cameraId}"
                         >
-                            FAIBLE
-                        </span>
-                    </td>
+                            0
+                        </td>
 
-                </tr>
-            `;
+                        <td
+                            id="forecast-15-${zone.cameraId}"
+                        >
+                            0
+                        </td>
 
-        })
-        .join("");
+                        <td
+                            id="forecast-30-${zone.cameraId}"
+                        >
+                            0
+                        </td>
+
+                        <td>
+
+                            <span
+                                id="forecast-risk-${zone.cameraId}"
+                                class="forecast-risk risk-low"
+                            >
+                                FAIBLE
+                            </span>
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+            })
+            .join("");
 
     return `
 
@@ -1171,25 +1191,29 @@ function forecast() {
                 PRÉVISION D'AFFLUENCE
             </h2>
 
-            <table>
+            <div class="forecast-table-responsive">
 
-                <thead>
+                <table>
 
-                    <tr>
-                        <th>ZONE</th>
-                        <th>ACTUEL</th>
-                        <th>+15 MIN</th>
-                        <th>+30 MIN</th>
-                        <th>RISQUE</th>
-                    </tr>
+                    <thead>
 
-                </thead>
+                        <tr>
+                            <th>ZONE</th>
+                            <th>ACTUEL</th>
+                            <th>+15 MIN</th>
+                            <th>+30 MIN</th>
+                            <th>RISQUE</th>
+                        </tr>
 
-                <tbody>
-                    ${rows}
-                </tbody>
+                    </thead>
 
-            </table>
+                    <tbody>
+                        ${rows}
+                    </tbody>
+
+                </table>
+
+            </div>
 
             <p class="forecast-information">
                 Projection calculée à partir des débits
@@ -1201,6 +1225,148 @@ function forecast() {
     `;
 }
 
+function pageForecast() {
+
+    return `
+
+        <div class="page forecast-page">
+
+            <div class="forecast-page-header">
+
+                <div>
+
+                    <h2>
+                        Prévisions
+                    </h2>
+
+                    <p>
+                        Anticipation de l’affluence et des temps
+                        d’attente dans les prochaines minutes.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- INDICATEURS PRÉVISIONNELS -->
+
+            <div class="page-grid forecast-indicators">
+
+                <div class="panel">
+
+                    <h3>Passagers actuels</h3>
+
+                    <div
+                        id="forecast-page-current-total"
+                        class="big"
+                    >
+                        0
+                    </div>
+
+                    <p>
+                        Toutes zones confondues
+                    </p>
+
+                </div>
+
+
+                <div class="panel">
+
+                    <h3>Prévision à +30 min</h3>
+
+                    <div
+                        id="forecast-page-total-30"
+                        class="big"
+                    >
+                        0
+                    </div>
+
+                    <p id="forecast-page-total-trend">
+                        Situation stable
+                    </p>
+
+                </div>
+
+
+                <div
+                    id="forecast-page-risk-panel"
+                    class="panel"
+                >
+
+                    <h3>Zone prioritaire</h3>
+
+                    <div
+                        id="forecast-page-risk-zone"
+                        class="big"
+                    >
+                        --
+                    </div>
+
+                    <p id="forecast-page-risk-level">
+                        Risque faible
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- TABLEAU EXISTANT -->
+
+            <section class="forecast-table-section">
+
+                ${forecast()}
+
+            </section>
+
+
+            <!-- ÉVOLUTION PRÉVISIONNELLE -->
+
+            <div class="panel forecast-chart-panel">
+
+                <h3>
+                    Évolution prévue de l’affluence
+                </h3>
+
+                <div class="chart-container">
+
+                    <canvas
+                        id="forecast-evolution-chart"
+                    ></canvas>
+
+                </div>
+
+                <p class="forecast-information">
+                    Projection à partir du nombre actuel,
+                    du débit d’arrivée et de la capacité de sortie.
+                </p>
+
+            </div>
+
+
+            <!-- ATTENTE PRÉVISIONNELLE -->
+
+            <div class="panel forecast-chart-panel">
+
+                <h3>
+                    Temps d’attente actuel et prévu
+                </h3>
+
+                <div class="chart-container">
+
+                    <canvas
+                        id="forecast-wait-chart"
+                    ></canvas>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    `;
+}
 
 /* =====================================================
    RECOMMANDATION
@@ -1273,7 +1439,7 @@ function page(p) {
     }
 
     if (p === "previsions") {
-        return forecast();
+        return pageForecast();
     }
 
     if (p === "Alertes") {
@@ -1333,6 +1499,9 @@ document.querySelectorAll("nav a").forEach(a => {
         }
         if(selectedPage ==="cameras"){
             initializeCameraManagement();
+        }
+        if(selectedPage==="previsions"){
+            initializeForecastCharts();
         }
              
     };
@@ -3308,6 +3477,639 @@ function escapeCameraText(value) {
 }
 
 
+
+/* =====================================================
+   FORCAST 
+===================================================== */
+
+function initializeForecastCharts() {
+
+    const evolutionCanvas =
+        document.getElementById(
+            "forecast-evolution-chart"
+        );
+
+    const waitCanvas =
+        document.getElementById(
+            "forecast-wait-chart"
+        );
+
+    if (!evolutionCanvas || !waitCanvas) {
+        return;
+    }
+
+    if (forecastEvolutionChart) {
+        forecastEvolutionChart.destroy();
+    }
+
+    if (forecastWaitChart) {
+        forecastWaitChart.destroy();
+    }
+
+
+    // ==========================================
+    // ÉVOLUTION DU NOMBRE DE PERSONNES
+    // ==========================================
+
+    forecastEvolutionChart = new Chart(
+
+        evolutionCanvas.getContext("2d"),
+
+        {
+            type: "line",
+
+            data: {
+
+                labels: [
+                    "Actuel",
+                    "+5 min",
+                    "+15 min",
+                    "+30 min"
+                ],
+
+                datasets: [
+
+                    {
+                        label: "Enregistrement",
+
+                        data: [0, 0, 0, 0],
+
+                        borderColor: "#22c55e",
+
+                        backgroundColor:
+                            "rgba(34, 197, 94, 0.10)",
+
+                        borderWidth: 3,
+
+                        pointRadius: 4,
+
+                        tension: 0.3
+                    },
+
+                    {
+                        label: "Contrôle sûreté",
+
+                        data: [0, 0, 0, 0],
+
+                        borderColor: "#f97316",
+
+                        backgroundColor:
+                            "rgba(249, 115, 22, 0.10)",
+
+                        borderWidth: 3,
+
+                        pointRadius: 4,
+
+                        tension: 0.3
+                    },
+
+                    {
+                        label: "Embarquement",
+
+                        data: [0, 0, 0, 0],
+
+                        borderColor: "#3b82f6",
+
+                        backgroundColor:
+                            "rgba(59, 130, 246, 0.10)",
+
+                        borderWidth: 3,
+
+                        pointRadius: 4,
+
+                        tension: 0.3
+                    }
+
+                ]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                animation: {
+                    duration: 300
+                },
+
+                interaction: {
+                    mode: "index",
+                    intersect: false
+                },
+
+                scales: {
+
+                    y: {
+                        beginAtZero: true,
+
+                        title: {
+                            display: true,
+                            text: "Nombre de personnes"
+                        },
+
+                        ticks: {
+                            precision: 0
+                        }
+                    },
+
+                    x: {
+                        title: {
+                            display: true,
+                            text: "Horizon de prévision"
+                        }
+                    }
+
+                }
+
+            }
+
+        }
+
+    );
+
+
+    // ==========================================
+    // ATTENTE ACTUELLE / ATTENTE PRÉVUE
+    // ==========================================
+
+    forecastWaitChart = new Chart(
+
+        waitCanvas.getContext("2d"),
+
+        {
+            type: "bar",
+
+            data: {
+
+                labels:
+                    forecastZones.map(
+                        zone => zone.name
+                    ),
+
+                datasets: [
+
+                    {
+                        label: "Attente actuelle",
+
+                        data: [0, 0, 0],
+
+                        backgroundColor:
+                            "#f59e0b"
+                    },
+
+                    {
+                        label: "Attente prévue à +30 min",
+
+                        data: [0, 0, 0],
+
+                        backgroundColor:
+                            "#dc2626"
+                    }
+
+                ]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                animation: {
+                    duration: 300
+                },
+
+                scales: {
+
+                    y: {
+                        beginAtZero: true,
+
+                        title: {
+                            display: true,
+                            text: "Temps d'attente (minutes)"
+                        }
+                    }
+
+                }
+
+            }
+
+        }
+
+    );
+}
+
+function calculateForecast(
+    currentCount,
+    arrivalRate,
+    throughputRate,
+    horizonMinutes
+) {
+
+    const netFlow =
+        arrivalRate - throughputRate;
+
+    const predictedCount =
+        currentCount
+        + netFlow * horizonMinutes;
+
+    return Math.max(
+        0,
+        Math.round(predictedCount)
+    );
+}
+
+function calculateForecastWait(
+    predictedCount,
+    throughputRate
+) {
+
+    if (
+        throughputRate <= 0
+        || predictedCount <= 0
+    ) {
+        return 0;
+    }
+
+    return predictedCount / throughputRate;
+}
+
+function updateForecastPage(data) {
+
+    const zoneForecasts = [];
+
+    for (const zone of forecastZones) {
+
+        const cameraData =
+            data[zone.cameraId]
+            || data[String(zone.cameraId)]
+            || {};
+
+        const currentCount =
+            Number(
+                cameraData.person_count ?? 0
+            );
+
+        const arrivalRate =
+            Number(
+                cameraData.arrival_rate_per_min
+                ?? 0
+            );
+
+        const throughputRate =
+            Number(
+                cameraData.throughput_rate_per_min
+                ?? 0
+            );
+
+        const currentWait =
+            Number(
+                cameraData.waiting_time_minutes
+                ?? 0
+            );
+
+        const forecast5 =
+            calculateForecast(
+                currentCount,
+                arrivalRate,
+                throughputRate,
+                5
+            );
+
+        const forecast15 =
+            calculateForecast(
+                currentCount,
+                arrivalRate,
+                throughputRate,
+                15
+            );
+
+        const forecast30 =
+            calculateForecast(
+                currentCount,
+                arrivalRate,
+                throughputRate,
+                30
+            );
+
+        const forecastWait30 =
+            calculateForecastWait(
+                forecast30,
+                throughputRate
+            );
+
+        const risk =
+            calculateForecastRisk(
+                cameraData,
+                currentCount,
+                forecast30
+            );
+
+        zoneForecasts.push({
+
+            cameraId:
+                zone.cameraId,
+
+            name:
+                zone.name,
+
+            currentCount:
+                currentCount,
+
+            forecast5:
+                forecast5,
+
+            forecast15:
+                forecast15,
+
+            forecast30:
+                forecast30,
+
+            currentWait:
+                currentWait,
+
+            forecastWait30:
+                forecastWait30,
+
+            arrivalRate:
+                arrivalRate,
+
+            throughputRate:
+                throughputRate,
+
+            risk:
+                risk
+
+        });
+
+    }
+
+
+    // ==========================================
+    // INDICATEURS GLOBAUX
+    // ==========================================
+
+    const totalCurrent =
+        zoneForecasts.reduce(
+            (total, zone) =>
+                total + zone.currentCount,
+            0
+        );
+
+    const totalForecast30 =
+        zoneForecasts.reduce(
+            (total, zone) =>
+                total + zone.forecast30,
+            0
+        );
+
+    const difference =
+        totalForecast30 - totalCurrent;
+
+    setForecastPageText(
+        "forecast-page-current-total",
+        totalCurrent
+    );
+
+    setForecastPageText(
+        "forecast-page-total-30",
+        totalForecast30
+    );
+
+    updateForecastTotalTrend(
+        difference
+    );
+
+
+    // ==========================================
+    // ZONE PRÉSENTANT LE PLUS GRAND RISQUE
+    // ==========================================
+
+    const highestRiskZone =
+        [...zoneForecasts].sort(
+            function(first, second) {
+
+                if (
+                    second.risk.priority
+                    !== first.risk.priority
+                ) {
+
+                    return (
+                        second.risk.priority
+                        - first.risk.priority
+                    );
+
+                }
+
+                return (
+                    second.forecast30
+                    - first.forecast30
+                );
+
+            }
+        )[0];
+
+    if (highestRiskZone) {
+
+        setForecastPageText(
+            "forecast-page-risk-zone",
+            highestRiskZone.name
+        );
+
+        setForecastPageText(
+            "forecast-page-risk-level",
+            `Risque ${highestRiskZone.risk.level.toLowerCase()}`
+        );
+
+        updateForecastRiskPanel(
+            highestRiskZone.risk.level
+        );
+
+    }
+
+
+    // ==========================================
+    // GRAPHIQUE D'ÉVOLUTION
+    // ==========================================
+
+    if (forecastEvolutionChart) {
+
+        zoneForecasts.forEach(
+            function(zone, index) {
+
+                const dataset =
+                    forecastEvolutionChart
+                        .data
+                        .datasets[index];
+
+                if (!dataset) {
+                    return;
+                }
+
+                dataset.data = [
+
+                    zone.currentCount,
+
+                    zone.forecast5,
+
+                    zone.forecast15,
+
+                    zone.forecast30
+
+                ];
+
+            }
+        );
+
+        forecastEvolutionChart.update(
+            "none"
+        );
+
+    }
+
+
+    // ==========================================
+    // GRAPHIQUE DES TEMPS D'ATTENTE
+    // ==========================================
+
+    if (forecastWaitChart) {
+
+        forecastWaitChart
+            .data
+            .datasets[0]
+            .data =
+                zoneForecasts.map(
+                    zone =>
+                        Number(
+                            zone.currentWait.toFixed(1)
+                        )
+                );
+
+        forecastWaitChart
+            .data
+            .datasets[1]
+            .data =
+                zoneForecasts.map(
+                    zone =>
+                        Number(
+                            zone.forecastWait30.toFixed(1)
+                        )
+                );
+
+        forecastWaitChart.update(
+            "none"
+        );
+
+    }
+
+}
+
+// utilitaire
+
+function setForecastPageText(
+    elementId,
+    value
+) {
+
+    const element =
+        document.getElementById(
+            elementId
+        );
+
+    if (element) {
+        element.textContent = value;
+    }
+}
+function updateForecastTotalTrend(
+    difference
+) {
+
+    const trendElement =
+        document.getElementById(
+            "forecast-page-total-trend"
+        );
+
+    if (!trendElement) {
+        return;
+    }
+
+    trendElement.classList.remove(
+        "forecast-trend-up",
+        "forecast-trend-down",
+        "forecast-trend-stable"
+    );
+
+    if (difference > 0) {
+
+        trendElement.textContent =
+            `↗ Augmentation prévue de ${difference} personnes`;
+
+        trendElement.classList.add(
+            "forecast-trend-up"
+        );
+
+    } else if (difference < 0) {
+
+        trendElement.textContent =
+            `↘ Diminution prévue de ${Math.abs(difference)} personnes`;
+
+        trendElement.classList.add(
+            "forecast-trend-down"
+        );
+
+    } else {
+
+        trendElement.textContent =
+            "→ Situation prévue stable";
+
+        trendElement.classList.add(
+            "forecast-trend-stable"
+        );
+
+    }
+}
+function updateForecastRiskPanel(level) {
+
+    const panel =
+        document.getElementById(
+            "forecast-page-risk-panel"
+        );
+
+    if (!panel) {
+        return;
+    }
+
+    panel.classList.remove(
+        "forecast-risk-low",
+        "forecast-risk-moderate",
+        "forecast-risk-high",
+        "forecast-risk-critical"
+    );
+
+    const classMapping = {
+
+        FAIBLE:
+            "forecast-risk-low",
+
+        MODERE:
+            "forecast-risk-moderate",
+
+        ELEVE:
+            "forecast-risk-high",
+
+        CRITIQUE:
+            "forecast-risk-critical"
+
+    };
+
+    panel.classList.add(
+        classMapping[level]
+        || classMapping.FAIBLE
+    );
+}
 /* =====================================================
    HORLOGE
 ===================================================== */
