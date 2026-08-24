@@ -406,7 +406,7 @@ h1 {
     border: 0;
     padding: 8px;
     border-radius: 5px;
-    color: white;
+    /* color: white; */
     cursor: pointer;
 }
 
@@ -884,6 +884,515 @@ footer {
 
     .queue-indicators {
         grid-template-columns: 1fr;
+    }
+
+}
+
+/* ================= Page Camera  ================= */
+
+/* =========================================================
+   PAGE DE GESTION DES CAMÉRAS
+   ========================================================= */
+
+.camera-management-page {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+}
+
+
+/* =========================================================
+   EN-TÊTE
+   ========================================================= */
+
+.camera-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.camera-page-header h2 {
+    margin: 0;
+}
+
+.camera-page-header p {
+    margin: 6px 0 0;
+    color: #64748b;
+}
+
+
+/* =========================================================
+   BOUTON PRINCIPAL
+   ========================================================= */
+
+.primary-button {
+    padding: 12px 18px;
+    border: none;
+    border-radius: 8px;
+    color: #ffffff;
+    background: #2563eb;
+    cursor: pointer;
+    font-weight: 700;
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.primary-button:hover {
+    background: #1d4ed8;
+}
+
+.primary-button:active {
+    transform: scale(0.98);
+}
+
+
+/* =========================================================
+   BARRE DE RECHERCHE
+   ========================================================= */
+
+.camera-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.camera-search-container {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    max-width: 650px;
+    padding: 0 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    background: #ffffff;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.camera-search-container:focus-within {
+    border-color: #2563eb;
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.camera-search-container input {
+    width: 100%;
+    padding: 13px 10px;
+    border: none;
+    outline: none;
+    color: #0f172a;
+    background: transparent;
+    font: inherit;
+}
+
+.camera-search-container input::placeholder {
+    color: #94a3b8;
+}
+
+#camera-result-count {
+    color: #64748b;
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   LISTE DES CAMÉRAS
+   ========================================================= */
+
+.camera-list {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    width: 100%;
+}
+
+
+/* =========================================================
+   CARTE D'UNE CAMÉRA
+   ========================================================= */
+
+.camera-management-card {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-width: 0;
+    padding: 22px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow:
+        0 4px 12px rgba(15, 23, 42, 0.05);
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.camera-management-card:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 8px 22px rgba(15, 23, 42, 0.10);
+}
+
+.camera-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.camera-card-header h3 {
+    margin: 0;
+    color: #0f172a;
+}
+
+.camera-card-header p {
+    margin: 5px 0 0;
+    color: #64748b;
+}
+
+
+/* =========================================================
+   ÉTAT DE LA CAMÉRA
+   ========================================================= */
+
+.camera-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.status-online {
+    color: #166534;
+    background: #dcfce7;
+}
+
+.status-waiting {
+    color: #9a3412;
+    background: #ffedd5;
+}
+
+.status-offline {
+    color: #991b1b;
+    background: #fee2e2;
+}
+
+
+/* =========================================================
+   INFORMATIONS D'UNE CAMÉRA
+   ========================================================= */
+
+.camera-information {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+.camera-information p {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin: 0;
+}
+
+.camera-information span {
+    color: #64748b;
+}
+
+.camera-information strong {
+    max-width: 65%;
+    overflow: hidden;
+    color: #0f172a;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   ACTIONS DES CARTES
+   ========================================================= */
+
+.camera-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: auto;
+}
+
+
+.camera-configure-button {
+    border: 1px solid #2563eb;
+    color: #2563eb;
+}
+
+.camera-configure-button:hover {
+    color: #ffffff;
+    background: #2563eb;
+}
+
+.camera-delete-button {
+    border: 1px solid #dc2626;
+    color: #dc2626;
+}
+
+.camera-delete-button:hover {
+    color: #ffffff;
+    background: #dc2626;
+}
+
+
+/* =========================================================
+   AUCUN RÉSULTAT
+   ========================================================= */
+
+.camera-empty-result {
+    padding: 35px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 10px;
+    color: #64748b;
+    text-align: center;
+    background: #f8fafc;
+}
+
+.camera-empty-result[hidden] {
+    display: none;
+}
+
+
+/* =========================================================
+   FENÊTRE MODALE
+   ========================================================= */
+
+.camera-dialog {
+    width: min(520px, calc(100% - 32px));
+    max-height: 90vh;
+    padding: 0;
+    border: none;
+    border-radius: 14px;
+    color: #0f172a;
+    background: #ffffff;
+    box-shadow:
+        0 24px 60px rgba(15, 23, 42, 0.30);
+    overflow: hidden;
+}
+
+.camera-dialog::backdrop {
+    background:
+        rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(3px);
+}
+
+
+/* =========================================================
+   FORMULAIRE
+   ========================================================= */
+
+.camera-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 90vh;
+    padding: 24px;
+    overflow-y: auto;
+}
+
+.camera-dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.camera-dialog-header h3 {
+    margin: 0;
+}
+
+.dialog-close-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    color: #475569;
+    background: #f1f5f9;
+    cursor: pointer;
+    font-size: 24px;
+    line-height: 1;
+}
+
+.dialog-close-button:hover {
+    color: #0f172a;
+    background: #e2e8f0;
+}
+
+.camera-form label {
+    margin-top: 8px;
+    color: #334155;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.camera-form input,
+.camera-form select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    outline: none;
+    color: #0f172a;
+    background: #ffffff;
+    font: inherit;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.camera-form input:focus,
+.camera-form select:focus {
+    border-color: #2563eb;
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.camera-form-help {
+    margin: 0;
+    color: #64748b;
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   ACTIONS DU FORMULAIRE
+   ========================================================= */
+
+.camera-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.camera-dialog-actions button {
+    padding: 11px 17px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+#camera-form-cancel {
+    border: 1px solid #cbd5e1;
+    color: #334155;
+    background: #ffffff;
+}
+
+#camera-form-cancel:hover {
+    background: #f1f5f9;
+}
+
+.camera-dialog-actions .primary-button {
+    border: none;
+    color: #ffffff;
+    background: #2563eb;
+}
+
+.camera-dialog-actions .primary-button:hover {
+    background: #1d4ed8;
+}
+
+
+/* =========================================================
+   RESPONSIVE TABLETTE
+   ========================================================= */
+
+@media (max-width: 850px) {
+
+    .camera-list {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+    .camera-management-page {
+        gap: 18px;
+    }
+
+    .camera-page-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .camera-page-header .primary-button {
+        width: 100%;
+    }
+
+    .camera-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .camera-search-container {
+        max-width: none;
+    }
+
+    .camera-management-card {
+        padding: 17px;
+    }
+
+    .camera-card-header {
+        flex-direction: column;
+    }
+
+    .camera-actions {
+        flex-direction: column;
+    }
+
+    .camera-actions button {
+        width: 100%;
+    }
+
+    .camera-dialog {
+        width: calc(100% - 20px);
+        max-height: 95vh;
+    }
+
+    .camera-form {
+        max-height: 95vh;
+        padding: 18px;
+    }
+
+    .camera-dialog-actions {
+        flex-direction: column-reverse;
+    }
+
+    .camera-dialog-actions button {
+        width: 100%;
     }
 
 }

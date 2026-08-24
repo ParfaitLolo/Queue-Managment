@@ -96,6 +96,46 @@ let queueLengthChart = null;
 
 let queueWaitChart = null;
 
+let cameraConfigurations = [
+
+    {
+        id: 1,
+        name: "CAM-01",
+        zone: "Enregistrement",
+        type: "IP",
+        source: "rtsp://192.168.1.101/stream",
+        status: "online"
+    },
+
+    {
+        id: 2,
+        name: "CAM-02",
+        zone: "Contrôle sûreté Nord",
+        type: "IP",
+        source: "rtsp://192.168.1.102/stream",
+        status: "online"
+    },
+
+    {
+        id: 3,
+        name: "CAM-03",
+        zone: "Contrôle sûreté Sud",
+        type: "IP",
+        source: "",
+        status: "waiting"
+    },
+
+    {
+        id: 4,
+        name: "CAM-04",
+        zone: "Embarquement",
+        type: "IP",
+        source: "",
+        status: "waiting"
+    }
+
+];
+
 
 /* =====================================================
    VARIABLES POUR LES ZONES
@@ -797,56 +837,274 @@ function pageFile() {
 }
 
 /* Page caméras montrant les caméras en temps réel*/
-
 function pageCameras() {
 
     return `
-        <div class="page">
 
-            <h2>Gestion des caméras</h2>
+        <div class="page camera-management-page">
 
-            <div class="page-grid">
+            <div class="camera-page-header">
 
-                <div class="panel">
-                    <h3>CAM-01</h3>
-                    <p>Enregistrement</p>
-                    <span class="status-online">
-                        ● CONNECTÉE
-                    </span>
+                <div>
+
+                    <h2>
+                        Gestion des caméras
+                    </h2>
+
+                    <p>
+                        Ajoutez, recherchez et configurez
+                        les caméras.
+                    </p>
+
                 </div>
 
-                <div class="panel">
-                    <h3>CAM-02</h3>
-                    <p>Contrôle sûreté Nord</p>
-                    <span class="status-online">
-                        ● CONNECTÉE
-                    </span>
-                </div>
-
-                <div class="panel">
-                    <h3>CAM-03</h3>
-                    <p>Contrôle sûreté Sud</p>
-                    <span>
-                        ● EN ATTENTE
-                    </span>
-                </div>
-
-                <div class="panel">
-                    <h3>CAM-04</h3>
-                    <p>Embarquement</p>
-                    <span>
-                        ● EN ATTENTE
-                    </span>
-                </div>
+                <button
+                    type="button"
+                    id="add-camera-button"
+                    class="primary-button"
+                >
+                    + AJOUTER UNE CAMÉRA
+                </button>
 
             </div>
 
+
+            <!-- RECHERCHE -->
+
+            <div class="camera-toolbar">
+
+                <div class="camera-search-container">
+
+                    <span aria-hidden="true">
+                        🔍
+                    </span>
+
+                    <input
+                        type="search"
+                        id="camera-search"
+                        placeholder="Rechercher une caméra ou une zone..."
+                        autocomplete="off"
+                    >
+
+                </div>
+
+                <span id="camera-result-count">
+                    0 caméra
+                </span>
+
+            </div>
+
+
+            <!-- LISTE DYNAMIQUE -->
+
+            <div
+                id="camera-management-list"
+                class="page-grid camera-list"
+            ></div>
+
+
+            <!-- MESSAGE AUCUN RÉSULTAT -->
+
+            <div
+                id="camera-empty-result"
+                class="camera-empty-result"
+                hidden
+            >
+
+                Aucune caméra trouvée.
+
+            </div>
+
+
+            <!-- FENÊTRE AJOUT / CONFIGURATION -->
+
+            <dialog
+                id="camera-dialog"
+                class="camera-dialog"
+            >
+
+                <form
+                    id="camera-form"
+                    class="camera-form"
+                >
+
+                    <div class="camera-dialog-header">
+
+                        <h3 id="camera-dialog-title">
+                            Ajouter une caméra
+                        </h3>
+
+                        <button
+                            type="button"
+                            id="camera-dialog-close"
+                            class="dialog-close-button"
+                            aria-label="Fermer"
+                        >
+                            ×
+                        </button>
+
+                    </div>
+
+
+                    <input
+                        type="hidden"
+                        id="camera-edit-id"
+                    >
+
+
+                    <label for="camera-name-input">
+                        Identifiant de la caméra
+                    </label>
+
+                    <input
+                        type="text"
+                        id="camera-name-input"
+                        placeholder="Exemple : CAM-05"
+                        required
+                    >
+
+
+                    <label for="camera-zone-input">
+                        Zone surveillée
+                    </label>
+
+                    <select
+                        id="camera-zone-input"
+                        required
+                    >
+
+                        <option value="">
+                            Sélectionner une zone
+                        </option>
+
+                        <option value="Enregistrement">
+                            Enregistrement
+                        </option>
+
+                        <option value="Contrôle sûreté Nord">
+                            Contrôle sûreté Nord
+                        </option>
+
+                        <option value="Contrôle sûreté Sud">
+                            Contrôle sûreté Sud
+                        </option>
+
+                        <option value="Embarquement">
+                            Embarquement
+                        </option>
+
+                        <option value="Hall départ">
+                            Hall départ
+                        </option>
+
+                        <option value="Arrivée">
+                            Arrivée
+                        </option>
+
+                    </select>
+
+
+                    <label for="camera-type-input">
+                        Type de caméra
+                    </label>
+
+                    <select
+                        id="camera-type-input"
+                        required
+                    >
+
+                        <option value="IP">
+                            Caméra IP
+                        </option>
+
+                        <option value="ONVIF">
+                            Caméra IP ONVIF
+                        </option>
+
+                        <option value="Webcam">
+                            Webcam USB
+                        </option>
+
+                        <option value="Analogique">
+                            Caméra analogique avec encodeur
+                        </option>
+
+                        <option value="Fichier">
+                            Fichier vidéo de test
+                        </option>
+
+                    </select>
+
+
+                    <label for="camera-source-input">
+                        Source vidéo
+                    </label>
+
+                    <input
+                        type="text"
+                        id="camera-source-input"
+                        placeholder="RTSP, numéro webcam ou chemin vidéo"
+                    >
+
+
+                    <p
+                        id="camera-source-help"
+                        class="camera-form-help"
+                    >
+                        Exemple :
+                        rtsp://192.168.1.100/stream
+                    </p>
+
+
+                    <label for="camera-status-input">
+                        État
+                    </label>
+
+                    <select
+                        id="camera-status-input"
+                    >
+
+                        <option value="online">
+                            Connectée
+                        </option>
+
+                        <option value="waiting">
+                            En attente
+                        </option>
+
+                        <option value="offline">
+                            Hors ligne
+                        </option>
+
+                    </select>
+
+
+                    <div class="camera-dialog-actions">
+
+                        <button
+                            type="button"
+                            id="camera-form-cancel"
+                        >
+                            ANNULER
+                        </button>
+
+                        <button
+                            type="submit"
+                            class="primary-button"
+                        >
+                            ENREGISTRER
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </dialog>
+
         </div>
+
     `;
 }
-
-
-
 /* =====================================================
    PREVISION
 ===================================================== */
@@ -1072,6 +1330,9 @@ document.querySelectorAll("nav a").forEach(a => {
 
         if(selectedPage ==="files"){
             initializeQueueCharts();
+        }
+        if(selectedPage ==="cameras"){
+            initializeCameraManagement();
         }
              
     };
@@ -2333,6 +2594,720 @@ function updateQueueCongestionStyle(level) {
         || classMapping.FAIBLE
     );
 }
+
+
+
+/* =====================================================
+   Page camera
+===================================================== */
+function initializeCameraManagement() {
+
+    const addButton =
+        document.getElementById(
+            "add-camera-button"
+        );
+
+    const searchInput =
+        document.getElementById(
+            "camera-search"
+        );
+
+    const cameraList =
+        document.getElementById(
+            "camera-management-list"
+        );
+
+    const dialog =
+        document.getElementById(
+            "camera-dialog"
+        );
+
+    const closeButton =
+        document.getElementById(
+            "camera-dialog-close"
+        );
+
+    const cancelButton =
+        document.getElementById(
+            "camera-form-cancel"
+        );
+
+    const cameraForm =
+        document.getElementById(
+            "camera-form"
+        );
+
+    if (
+        !addButton
+        || !searchInput
+        || !cameraList
+        || !dialog
+        || !cameraForm
+    ) {
+        return;
+    }
+
+
+    // Affichage initial
+    renderCameraManagementCards();
+
+
+    // ==========================================
+    // RECHERCHE
+    // ==========================================
+
+    searchInput.addEventListener(
+        "input",
+        function() {
+
+            renderCameraManagementCards(
+                searchInput.value
+            );
+
+        }
+    );
+
+
+    // ==========================================
+    // AJOUT
+    // ==========================================
+
+    addButton.addEventListener(
+        "click",
+        function() {
+
+            openCameraDialog();
+
+        }
+    );
+
+
+    // ==========================================
+    // CONFIGURATION ET SUPPRESSION
+    // ==========================================
+
+    cameraList.addEventListener(
+        "click",
+        function(event) {
+
+            const button =
+                event.target.closest(
+                    "[data-camera-action]"
+                );
+
+            if (!button) {
+                return;
+            }
+
+            const cameraId =
+                Number(
+                    button.dataset.cameraId
+                );
+
+            const action =
+                button.dataset.cameraAction;
+
+            if (action === "configure") {
+
+                openCameraDialog(
+                    cameraId
+                );
+
+            }
+
+            if (action === "delete") {
+
+                deleteCameraConfiguration(
+                    cameraId
+                );
+
+            }
+
+        }
+    );
+
+
+    // ==========================================
+    // FERMETURE
+    // ==========================================
+
+    closeButton?.addEventListener(
+        "click",
+        function() {
+
+            dialog.close();
+
+        }
+    );
+
+    cancelButton?.addEventListener(
+        "click",
+        function() {
+
+            dialog.close();
+
+        }
+    );
+
+
+    // ==========================================
+    // ENREGISTRER
+    // ==========================================
+
+    cameraForm.addEventListener(
+        "submit",
+        function(event) {
+
+            event.preventDefault();
+
+            saveCameraConfiguration();
+
+        }
+    );
+
+
+    // Modification de l'aide selon le type
+    initializeCameraSourceHelp();
+}
+function renderCameraManagementCards(
+    searchValue = ""
+) {
+
+    const list =
+        document.getElementById(
+            "camera-management-list"
+        );
+
+    const resultCount =
+        document.getElementById(
+            "camera-result-count"
+        );
+
+    const emptyResult =
+        document.getElementById(
+            "camera-empty-result"
+        );
+
+    if (!list || !resultCount || !emptyResult) {
+        return;
+    }
+
+    const normalizedSearch =
+        searchValue
+            .trim()
+            .toLowerCase();
+
+    const filteredCameras =
+        cameraConfigurations.filter(
+            function(camera) {
+
+                const searchableText = `
+
+                    ${camera.name}
+                    ${camera.zone}
+                    ${camera.type}
+                    ${camera.status}
+
+                `.toLowerCase();
+
+                return searchableText.includes(
+                    normalizedSearch
+                );
+
+            }
+        );
+
+    list.innerHTML =
+        filteredCameras
+            .map(createCameraManagementCard)
+            .join("");
+
+    resultCount.textContent =
+        `${filteredCameras.length} caméra${
+            filteredCameras.length > 1
+                ? "s"
+                : ""
+        }`;
+
+    emptyResult.hidden =
+        filteredCameras.length !== 0;
+}
+
+function createCameraManagementCard(camera) {
+
+    const statusConfiguration = {
+
+        online: {
+            text: "CONNECTÉE",
+            className: "status-online"
+        },
+
+        waiting: {
+            text: "EN ATTENTE",
+            className: "status-waiting"
+        },
+
+        offline: {
+            text: "HORS LIGNE",
+            className: "status-offline"
+        }
+
+    };
+
+    const status =
+        statusConfiguration[camera.status]
+        || statusConfiguration.waiting;
+
+    const sourceText =
+        camera.source
+            ? maskCameraSource(camera.source)
+            : "Non configurée";
+
+    return `
+
+        <article
+            class="panel camera-management-card"
+            data-camera-id="${camera.id}"
+        >
+
+            <div class="camera-card-header">
+
+                <div>
+
+                    <h3>
+                        ${escapeCameraText(camera.name)}
+                    </h3>
+
+                    <p>
+                        ${escapeCameraText(camera.zone)}
+                    </p>
+
+                </div>
+
+                <span
+                    class="camera-status ${status.className}"
+                >
+                    ● ${status.text}
+                </span>
+
+            </div>
+
+
+            <div class="camera-information">
+
+                <p>
+
+                    <span>Type</span>
+
+                    <strong>
+                        ${escapeCameraText(camera.type)}
+                    </strong>
+
+                </p>
+
+                <p>
+
+                    <span>Source</span>
+
+                    <strong>
+                        ${escapeCameraText(sourceText)}
+                    </strong>
+
+                </p>
+
+            </div>
+
+
+            <div class="camera-actions">
+
+                <button
+                    type="button"
+                    class="camera-configure-button"
+                    data-camera-action="configure"
+                    data-camera-id="${camera.id}"
+                >
+                    ⚙ CONFIGURER
+                </button>
+
+                <button
+                    type="button"
+                    class="camera-delete-button"
+                    data-camera-action="delete"
+                    data-camera-id="${camera.id}"
+                >
+                    🗑 SUPPRIMER
+                </button>
+
+            </div>
+
+        </article>
+
+    `;
+}
+
+function openCameraDialog(cameraId = null) {
+
+    const dialog =
+        document.getElementById(
+            "camera-dialog"
+        );
+
+    const title =
+        document.getElementById(
+            "camera-dialog-title"
+        );
+
+    const idInput =
+        document.getElementById(
+            "camera-edit-id"
+        );
+
+    const nameInput =
+        document.getElementById(
+            "camera-name-input"
+        );
+
+    const zoneInput =
+        document.getElementById(
+            "camera-zone-input"
+        );
+
+    const typeInput =
+        document.getElementById(
+            "camera-type-input"
+        );
+
+    const sourceInput =
+        document.getElementById(
+            "camera-source-input"
+        );
+
+    const statusInput =
+        document.getElementById(
+            "camera-status-input"
+        );
+
+    if (
+        !dialog
+        || !title
+        || !idInput
+        || !nameInput
+        || !zoneInput
+        || !typeInput
+        || !sourceInput
+        || !statusInput
+    ) {
+        return;
+    }
+
+    if (cameraId === null) {
+
+        title.textContent =
+            "Ajouter une caméra";
+
+        idInput.value = "";
+
+        nameInput.value =
+            generateNextCameraName();
+
+        zoneInput.value = "";
+
+        typeInput.value = "IP";
+
+        sourceInput.value = "";
+
+        statusInput.value = "waiting";
+
+    } else {
+
+        const camera =
+            cameraConfigurations.find(
+                camera => camera.id === cameraId
+            );
+
+        if (!camera) {
+            return;
+        }
+
+        title.textContent =
+            `Configurer ${camera.name}`;
+
+        idInput.value =
+            camera.id;
+
+        nameInput.value =
+            camera.name;
+
+        zoneInput.value =
+            camera.zone;
+
+        typeInput.value =
+            camera.type;
+
+        sourceInput.value =
+            camera.source;
+
+        statusInput.value =
+            camera.status;
+    }
+
+    updateCameraSourceHelp();
+
+    dialog.showModal();
+
+    nameInput.focus();
+}
+
+function saveCameraConfiguration() {
+
+    const editId =
+        document.getElementById(
+            "camera-edit-id"
+        ).value;
+
+    const cameraData = {
+
+        name:
+            document.getElementById(
+                "camera-name-input"
+            ).value.trim(),
+
+        zone:
+            document.getElementById(
+                "camera-zone-input"
+            ).value,
+
+        type:
+            document.getElementById(
+                "camera-type-input"
+            ).value,
+
+        source:
+            document.getElementById(
+                "camera-source-input"
+            ).value.trim(),
+
+        status:
+            document.getElementById(
+                "camera-status-input"
+            ).value
+
+    };
+
+    if (editId) {
+
+        const camera =
+            cameraConfigurations.find(
+                camera =>
+                    camera.id === Number(editId)
+            );
+
+        if (camera) {
+
+            Object.assign(
+                camera,
+                cameraData
+            );
+
+        }
+
+    } else {
+
+        const newId =
+            cameraConfigurations.length > 0
+                ? Math.max(
+                    ...cameraConfigurations.map(
+                        camera => camera.id
+                    )
+                ) + 1
+                : 1;
+
+        cameraConfigurations.push({
+
+            id: newId,
+
+            ...cameraData
+
+        });
+
+    }
+
+    document
+        .getElementById("camera-dialog")
+        .close();
+
+    const searchValue =
+        document.getElementById(
+            "camera-search"
+        )?.value || "";
+
+    renderCameraManagementCards(
+        searchValue
+    );
+}
+
+function deleteCameraConfiguration(cameraId) {
+
+    const camera =
+        cameraConfigurations.find(
+            camera => camera.id === cameraId
+        );
+
+    if (!camera) {
+        return;
+    }
+
+    const confirmed =
+        confirm(
+            `Supprimer ${camera.name} — ${camera.zone} ?`
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    cameraConfigurations =
+        cameraConfigurations.filter(
+            camera => camera.id !== cameraId
+        );
+
+    const searchValue =
+        document.getElementById(
+            "camera-search"
+        )?.value || "";
+
+    renderCameraManagementCards(
+        searchValue
+    );
+}
+
+function initializeCameraSourceHelp() {
+
+    const typeInput =
+        document.getElementById(
+            "camera-type-input"
+        );
+
+    if (!typeInput) {
+        return;
+    }
+
+    typeInput.addEventListener(
+        "change",
+        updateCameraSourceHelp
+    );
+}
+function updateCameraSourceHelp() {
+
+    const typeInput =
+        document.getElementById(
+            "camera-type-input"
+        );
+
+    const sourceInput =
+        document.getElementById(
+            "camera-source-input"
+        );
+
+    const helpElement =
+        document.getElementById(
+            "camera-source-help"
+        );
+
+    if (
+        !typeInput
+        || !sourceInput
+        || !helpElement
+    ) {
+        return;
+    }
+
+    const configurations = {
+
+        IP: {
+            placeholder:
+                "rtsp://192.168.1.100/stream",
+
+            help:
+                "Entrez l’adresse RTSP de la caméra."
+        },
+
+        ONVIF: {
+            placeholder:
+                "192.168.1.100",
+
+            help:
+                "Entrez l’adresse IP de la caméra ONVIF."
+        },
+
+        Webcam: {
+            placeholder:
+                "0",
+
+            help:
+                "Entrez le numéro de la webcam : 0, 1, 2..."
+        },
+
+        Analogique: {
+            placeholder:
+                "rtsp://adresse-encodeur/stream",
+
+            help:
+                "Entrez l’adresse de l’encodeur vidéo."
+        },
+
+        Fichier: {
+            placeholder:
+                "/videos/test.mp4",
+
+            help:
+                "Entrez le chemin du fichier vidéo."
+        }
+
+    };
+
+    const selected =
+        configurations[typeInput.value]
+        || configurations.IP;
+
+    sourceInput.placeholder =
+        selected.placeholder;
+
+    helpElement.textContent =
+        selected.help;
+}
+function generateNextCameraName() {
+
+    const nextNumber =
+        cameraConfigurations.length > 0
+            ? Math.max(
+                ...cameraConfigurations.map(
+                    camera => camera.id
+                )
+            ) + 1
+            : 1;
+
+    return `CAM-${String(nextNumber).padStart(2, "0")}`;
+}
+function maskCameraSource(source) {
+
+    return source.replace(
+        /\/\/([^:@/]+):([^@/]+)@/,
+        "//$1:***@"
+    );
+}
+function escapeCameraText(value) {
+
+    const element =
+        document.createElement("div");
+
+    element.textContent =
+        String(value ?? "");
+
+    return element.innerHTML;
+}
+
+
 /* =====================================================
    HORLOGE
 ===================================================== */
