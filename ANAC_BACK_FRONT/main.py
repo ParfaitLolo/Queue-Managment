@@ -8,6 +8,7 @@ from fastapi import Response
 from pydantic import BaseModel
 from Rapport import create_pdf_report
 from camera import Camera
+from datetime import datetime
 
 
 app = FastAPI()
@@ -159,7 +160,43 @@ def test():
 @app.get("/reports/generate")
 def generate_report():
 
-    pdf_content = create_pdf_report()
+    data = {
+
+        camera_id:
+        camera.get_data()
+
+        for camera_id, camera
+        in cameras.items()
+
+    }
+
+    pdf_content = create_pdf_report(
+
+        data=data,
+
+        airport_name=(
+            "Aéroport international "
+            "Gnassingbé Eyadéma"
+        ),
+
+        report_title=(
+            "Rapport opérationnel "
+            "des flux passagers"
+        )
+
+    )
+
+    filename = (
+
+        "rapport_passagers_"
+
+        + datetime.now().strftime(
+            "%Y%m%d_%H%M%S"
+        )
+
+        + ".pdf"
+
+    )
 
     return Response(
 
@@ -170,7 +207,7 @@ def generate_report():
         headers={
 
             "Content-Disposition":
-                'attachment; filename="rapport_passagers.pdf"',
+                f'attachment; filename="{filename}"',
 
             "Cache-Control":
                 "no-store"

@@ -95,6 +95,27 @@ nav b {
     font-size: 10px;
 }
 
+.report-download-link {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 4px;
+    padding: 13px 12px;
+    border-radius: 6px;
+
+    color: #c1d0d3;
+    background: transparent;
+
+    text-decoration: none;
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+.report-download-link:hover {
+    color: white;
+    background: #237b78;
+}
+
 
 /* ================= MAIN ================= */
 
