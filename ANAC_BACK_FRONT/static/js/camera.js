@@ -610,6 +610,10 @@ function setupCamera(cameraId) {
 
             // Mettre à jour Flux Page 
             updateFluxPage(data);
+            // Mettre à jou la page file attente
+            updateQueuePage(data);
+
+
 
 
             const cameraData =

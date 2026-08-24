@@ -56,6 +56,45 @@ let fluxHistoryChart = null;
 
 let fluxRateChart = null;
 
+const queueZones = [
+
+    {
+        cameraId: 1,
+        name: "Enregistrement",
+        historyKey: "registration"
+    },
+
+    {
+        cameraId: 2,
+        name: "Contrôle sûreté",
+        historyKey: "security"
+    },
+
+    {
+        cameraId: 3,
+        name: "Embarquement",
+        historyKey: "boarding"
+    }
+
+];
+
+const MAX_QUEUE_HISTORY = 150;
+
+const queueHistory = {
+
+    labels: [],
+
+    registration: [],
+
+    security: [],
+
+    boarding: []
+
+};
+
+let queueLengthChart = null;
+
+let queueWaitChart = null;
 
 
 /* =====================================================
@@ -622,6 +661,140 @@ function pageFlux() {
     `;
 }
 
+/* Page flux montrant les files d'attente en temps réel*/
+function pageFile() {
+
+    return `
+
+        <div class="page queue-page">
+
+            <h2>
+                Files d’attente
+            </h2>
+
+            
+            <!-- LONGUEUR DES FILES -->
+
+            <div class="panel queue-chart-panel">
+
+                <h3>
+                    Évolution de la longueur des files
+                </h3>
+
+                <div class="chart-container">
+
+                    <canvas
+                        id="queue-length-chart"
+                    ></canvas>
+
+                </div>
+
+            </div>
+
+
+            <!-- TEMPS D'ATTENTE -->
+
+            <div class="panel queue-chart-panel">
+
+                <h3>
+                    Temps d’attente par zone
+                </h3>
+
+                <div class="chart-container">
+
+                    <canvas
+                        id="queue-wait-chart"
+                    ></canvas>
+
+                </div>
+
+            </div>
+
+
+            <!-- INDICATEURS GLOBAUX -->
+
+            <div class="page-grid queue-indicators">
+
+                <div class="panel">
+
+                    <h3>Personnes en attente</h3>
+
+                    <div
+                        class="big"
+                        id="queue-total-count"
+                    >
+                        0
+                    </div>
+
+                    <p>
+                        Toutes zones confondues
+                    </p>
+
+                </div>
+
+
+                <div class="panel">
+
+                    <h3>Attente moyenne</h3>
+
+                    <div
+                        class="big"
+                        id="queue-average-wait"
+                    >
+                        0.0 min
+                    </div>
+
+                    <p>
+                        Moyenne des personnes présentes
+                    </p>
+
+                </div>
+
+
+                <div class="panel">
+
+                    <h3>Attente maximale</h3>
+
+                    <div
+                        class="big"
+                        id="queue-maximum-wait"
+                    >
+                        0.0 min
+                    </div>
+
+                    <p id="queue-maximum-zone">
+                        Aucune attente
+                    </p>
+
+                </div>
+
+
+                <div
+                    class="panel"
+                    id="queue-congestion-panel"
+                >
+
+                    <h3>Niveau global</h3>
+
+                    <div
+                        class="big"
+                        id="queue-congestion-level"
+                    >
+                        FAIBLE
+                    </div>
+
+                    <p id="queue-critical-zone">
+                        Situation normale
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    `;
+}
 
 /* Page caméras montrant les caméras en temps réel*/
 
@@ -833,6 +1006,10 @@ function page(p) {
         return pageFlux();
     }
 
+    if(p== "files"){
+        return pageFile();
+    }
+
     if (p === "cameras") {
         return pageCameras();
     }
@@ -854,8 +1031,7 @@ function page(p) {
             <h2>${titles[p]}</h2>
 
             <p>
-                Cette page recevra ses données
-                depuis le backend Python.
+                Cette page est en cours de développement ...
             </p>
 
         </div>
@@ -892,6 +1068,10 @@ document.querySelectorAll("nav a").forEach(a => {
         }
         if (selectedPage === "flux"){
             initializeFluxCharts();
+        }
+
+        if(selectedPage ==="files"){
+            initializeQueueCharts();
         }
              
     };
@@ -1525,6 +1705,634 @@ function setFluxText(
     }
 }
 
+
+/* =====================================================
+   FILE D'ATTENTE PAGE 
+===================================================== */
+
+function initializeQueueCharts() {
+
+    const lengthCanvas =
+        document.getElementById(
+            "queue-length-chart"
+        );
+
+    const waitCanvas =
+        document.getElementById(
+            "queue-wait-chart"
+        );
+
+    if (!lengthCanvas || !waitCanvas) {
+        return;
+    }
+
+    if (queueLengthChart) {
+        queueLengthChart.destroy();
+    }
+
+    if (queueWaitChart) {
+        queueWaitChart.destroy();
+    }
+
+
+    // ==========================================
+    // ÉVOLUTION DE LA LONGUEUR DES FILES
+    // ==========================================
+
+    queueLengthChart = new Chart(
+
+        lengthCanvas.getContext("2d"),
+
+        {
+            type: "line",
+
+            data: {
+
+                labels:
+                    queueHistory.labels,
+
+                datasets: [
+
+                    {
+                        label: "Enregistrement",
+
+                        data:
+                            queueHistory.registration,
+
+                        borderColor:
+                            "#22c55e",
+
+                        backgroundColor:
+                            "rgba(34, 197, 94, 0.10)",
+
+                        borderWidth: 2,
+
+                        pointRadius: 0,
+
+                        tension: 0.3
+                    },
+
+                    {
+                        label: "Contrôle sûreté",
+
+                        data:
+                            queueHistory.security,
+
+                        borderColor:
+                            "#f97316",
+
+                        backgroundColor:
+                            "rgba(249, 115, 22, 0.10)",
+
+                        borderWidth: 2,
+
+                        pointRadius: 0,
+
+                        tension: 0.3
+                    },
+
+                    {
+                        label: "Embarquement",
+
+                        data:
+                            queueHistory.boarding,
+
+                        borderColor:
+                            "#3b82f6",
+
+                        backgroundColor:
+                            "rgba(59, 130, 246, 0.10)",
+
+                        borderWidth: 2,
+
+                        pointRadius: 0,
+
+                        tension: 0.3
+                    }
+
+                ]
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                animation: false,
+
+                interaction: {
+                    mode: "index",
+                    intersect: false
+                },
+
+                scales: {
+
+                    y: {
+                        beginAtZero: true,
+
+                        title: {
+                            display: true,
+                            text: "Personnes dans la file"
+                        },
+
+                        ticks: {
+                            precision: 0
+                        }
+                    },
+
+                    x: {
+                        title: {
+                            display: true,
+                            text: "Heure"
+                        },
+
+                        ticks: {
+                            maxTicksLimit: 10
+                        }
+                    }
+
+                }
+
+            }
+
+        }
+
+    );
+
+
+    // ==========================================
+    // ATTENTE MOYENNE ET MAXIMALE
+    // ==========================================
+
+    queueWaitChart = new Chart(
+
+        waitCanvas.getContext("2d"),
+
+        {
+            type: "bar",
+
+            data: {
+
+                labels:
+                    queueZones.map(
+                        zone => zone.name
+                    ),
+
+                datasets: [
+
+                    {
+                        label: "Attente moyenne",
+
+                        data: [0, 0, 0],
+
+                        backgroundColor:
+                            "#f59e0b"
+                    },
+
+                    {
+                        label: "Attente maximale",
+
+                        data: [0, 0, 0],
+
+                        backgroundColor:
+                            "#dc2626"
+                    }
+
+                ]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                animation: {
+                    duration: 300
+                },
+
+                scales: {
+
+                    y: {
+                        beginAtZero: true,
+
+                        title: {
+                            display: true,
+                            text: "Temps d'attente (minutes)"
+                        }
+                    }
+
+                }
+
+            }
+
+        }
+
+    );
+}
+
+function getAverageWaitMinutes(cameraData) {
+
+    if (
+        cameraData.waiting_time_minutes
+        !== undefined
+    ) {
+
+        return Number(
+            cameraData.waiting_time_minutes
+            ?? 0
+        );
+
+    }
+
+    if (
+        cameraData.average_active_wait_seconds
+        !== undefined
+    ) {
+
+        return (
+            Number(
+                cameraData.average_active_wait_seconds
+                ?? 0
+            ) / 60
+        );
+
+    }
+
+    return 0;
+}
+
+function getMaximumWaitMinutes(cameraData) {
+
+    return (
+        Number(
+            cameraData.maximum_active_wait_seconds
+            ?? 0
+        ) / 60
+    );
+}
+const congestionPriority = {
+
+    FAIBLE: 1,
+
+    MODERE: 2,
+
+    ELEVE: 3,
+
+    CRITIQUE: 4
+
+};
+
+function formatCongestionLevel(level) {
+
+    const labels = {
+
+        FAIBLE: "FAIBLE",
+
+        MODERE: "MODÉRÉ",
+
+        ELEVE: "ÉLEVÉ",
+
+        CRITIQUE: "CRITIQUE"
+
+    };
+
+    return labels[level] || "FAIBLE";
+}
+
+function updateQueuePage(data) {
+
+    const zoneResults = [];
+
+    for (const zone of queueZones) {
+
+        const cameraData =
+            data[zone.cameraId]
+            || data[String(zone.cameraId)]
+            || {};
+
+        const personCount =
+            Number(
+                cameraData.person_count ?? 0
+            );
+
+        const averageWaitMinutes =
+            getAverageWaitMinutes(
+                cameraData
+            );
+
+        const maximumWaitMinutes =
+            getMaximumWaitMinutes(
+                cameraData
+            );
+
+        const congestionLevel =
+            cameraData.congestion_level
+            || "FAIBLE";
+
+        zoneResults.push({
+
+            ...zone,
+
+            personCount,
+
+            averageWaitMinutes,
+
+            maximumWaitMinutes,
+
+            congestionLevel,
+
+            priority:
+                congestionPriority[
+                    congestionLevel
+                ] || 1
+
+        });
+
+    }
+
+
+    // ==========================================
+    // TOTAL DES PERSONNES EN FILE
+    // ==========================================
+
+    const totalPeople =
+        zoneResults.reduce(
+            (total, zone) =>
+                total + zone.personCount,
+            0
+        );
+
+
+    // ==========================================
+    // ATTENTE MOYENNE PONDÉRÉE
+    // ==========================================
+
+    const weightedWaitTotal =
+        zoneResults.reduce(
+            (total, zone) => {
+
+                return (
+                    total
+                    + zone.averageWaitMinutes
+                    * zone.personCount
+                );
+
+            },
+            0
+        );
+
+    const globalAverageWait =
+        totalPeople > 0
+            ? weightedWaitTotal / totalPeople
+            : 0;
+
+
+    // ==========================================
+    // ZONE AVEC L'ATTENTE MAXIMALE
+    // ==========================================
+
+    const maximumWaitZone =
+        [...zoneResults].sort(
+            (first, second) =>
+                second.maximumWaitMinutes
+                - first.maximumWaitMinutes
+        )[0];
+
+    const globalMaximumWait =
+        maximumWaitZone
+            ?.maximumWaitMinutes
+        ?? 0;
+
+
+    // ==========================================
+    // ZONE AVEC LA PLUS FORTE CONGESTION
+    // ==========================================
+
+    const mostCongestedZone =
+        [...zoneResults].sort(
+            function(first, second) {
+
+                if (
+                    second.priority
+                    !== first.priority
+                ) {
+
+                    return (
+                        second.priority
+                        - first.priority
+                    );
+
+                }
+
+                return (
+                    second.personCount
+                    - first.personCount
+                );
+
+            }
+        )[0];
+
+
+    // ==========================================
+    // ACTUALISER LES INDICATEURS
+    // ==========================================
+
+    setQueueText(
+        "queue-total-count",
+        totalPeople
+    );
+
+    setQueueText(
+        "queue-average-wait",
+        `${globalAverageWait.toFixed(1)} min`
+    );
+
+    setQueueText(
+        "queue-maximum-wait",
+        `${globalMaximumWait.toFixed(1)} min`
+    );
+
+    setQueueText(
+        "queue-maximum-zone",
+
+        globalMaximumWait > 0
+            ? maximumWaitZone.name
+            : "Aucune attente"
+    );
+
+    setQueueText(
+        "queue-congestion-level",
+
+        formatCongestionLevel(
+            mostCongestedZone
+                ?.congestionLevel
+        )
+    );
+
+    setQueueText(
+        "queue-critical-zone",
+
+        mostCongestedZone
+            ? mostCongestedZone.name
+            : "Situation normale"
+    );
+
+    updateQueueCongestionStyle(
+        mostCongestedZone
+            ?.congestionLevel
+        || "FAIBLE"
+    );
+
+
+    // ==========================================
+    // AJOUTER À L'HISTORIQUE
+    // ==========================================
+
+    const currentTime =
+        new Date().toLocaleTimeString(
+            "fr-FR",
+            {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit"
+            }
+        );
+
+    queueHistory.labels.push(
+        currentTime
+    );
+
+    for (const zone of zoneResults) {
+
+        queueHistory[
+            zone.historyKey
+        ].push(
+            zone.personCount
+        );
+
+    }
+
+    if (
+        queueHistory.labels.length
+        > MAX_QUEUE_HISTORY
+    ) {
+
+        queueHistory.labels.shift();
+
+        queueHistory.registration.shift();
+
+        queueHistory.security.shift();
+
+        queueHistory.boarding.shift();
+
+    }
+
+
+    // ==========================================
+    // ACTUALISER LES GRAPHIQUES
+    // ==========================================
+
+    if (queueLengthChart) {
+
+        queueLengthChart.update(
+            "none"
+        );
+
+    }
+
+    if (queueWaitChart) {
+
+        queueWaitChart
+            .data
+            .datasets[0]
+            .data =
+                zoneResults.map(
+                    zone =>
+                        Number(
+                            zone.averageWaitMinutes
+                                .toFixed(2)
+                        )
+                );
+
+        queueWaitChart
+            .data
+            .datasets[1]
+            .data =
+                zoneResults.map(
+                    zone =>
+                        Number(
+                            zone.maximumWaitMinutes
+                                .toFixed(2)
+                        )
+                );
+
+        queueWaitChart.update(
+            "none"
+        );
+
+    }
+
+}
+
+//utilitaires
+
+function setQueueText(
+    elementId,
+    value
+) {
+
+    const element =
+        document.getElementById(
+            elementId
+        );
+
+    if (element) {
+        element.textContent = value;
+    }
+}
+
+function updateQueueCongestionStyle(level) {
+
+    const panel =
+        document.getElementById(
+            "queue-congestion-panel"
+        );
+
+    if (!panel) {
+        return;
+    }
+
+    panel.classList.remove(
+        "queue-low",
+        "queue-moderate",
+        "queue-high",
+        "queue-critical"
+    );
+
+    const classMapping = {
+
+        FAIBLE:
+            "queue-low",
+
+        MODERE:
+            "queue-moderate",
+
+        ELEVE:
+            "queue-high",
+
+        CRITIQUE:
+            "queue-critical"
+
+    };
+
+    panel.classList.add(
+        classMapping[level]
+        || classMapping.FAIBLE
+    );
+}
 /* =====================================================
    HORLOGE
 ===================================================== */
@@ -1583,12 +2391,16 @@ function demarrerApplication() {
 }
 
 
+
+
 /* Horloge */
 
 setInterval(
     clock,
     1000
 );
+
+
 
 
 /*
