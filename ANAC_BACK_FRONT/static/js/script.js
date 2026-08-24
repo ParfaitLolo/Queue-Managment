@@ -1394,6 +1394,8 @@ function pageAlerts() {
         </div>
     `;
 }
+
+
 function recommendation() {
 
     return `
@@ -1438,6 +1440,10 @@ function recommendation() {
     `;
 }
 
+
+
+
+
 /* =====================================================
    PAGES
 ===================================================== */
@@ -1468,9 +1474,9 @@ function page(p) {
         return pageAlerts();
     }
 
-    if (p === "Rapports") {
-        return forecast();
-    }
+    // if (p === "Rapports") {
+    //     return pageRapport();
+    // }
     return `
         <div class="page">
 
@@ -1525,6 +1531,7 @@ document.querySelectorAll("nav a").forEach(a => {
         if(selectedPage==="previsions"){
             initializeForecastCharts();
         }
+
              
     };
 });
@@ -4132,6 +4139,13 @@ function updateForecastRiskPanel(level) {
         || classMapping.FAIBLE
     );
 }
+
+/* =====================================================
+  Rapport
+===================================================== */
+
+
+
 /* =====================================================
    HORLOGE
 ===================================================== */

@@ -4,9 +4,9 @@ from fastapi.responses import (
     StreamingResponse
 )
 from fastapi.staticfiles import StaticFiles
-
+from fastapi import Response
 from pydantic import BaseModel
-
+from Rapport import create_pdf_report
 from camera import Camera
 
 
@@ -152,3 +152,29 @@ def test():
         encoding="utf-8"
     ) as file:
         return file.read()
+
+
+# routes =================================================
+
+@app.get("/reports/generate")
+def generate_report():
+
+    pdf_content = create_pdf_report()
+
+    return Response(
+
+        content=pdf_content,
+
+        media_type="application/pdf",
+
+        headers={
+
+            "Content-Disposition":
+                'attachment; filename="rapport_passagers.pdf"',
+
+            "Cache-Control":
+                "no-store"
+
+        }
+
+    )
