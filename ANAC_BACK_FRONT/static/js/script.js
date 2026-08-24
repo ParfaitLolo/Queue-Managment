@@ -38,6 +38,25 @@ const titles = {
 
 let slot = 0;
 
+const MAX_FLUX_HISTORY = 150;
+
+const fluxHistory = {
+
+    labels: [],
+
+    registration: [],
+
+    security: [],
+
+    boarding: []
+
+};
+
+let fluxHistoryChart = null;
+
+let fluxRateChart = null;
+
+
 
 /* =====================================================
    VARIABLES POUR LES ZONES
@@ -482,42 +501,124 @@ function dashboard() {
 function pageFlux() {
 
     return `
-        <div class="page">
 
-            <h2>Flux passagers</h2>
+        <div class="page flux-page">
 
-            <div class="page-grid">
+            <h2>Flux passagers en temps réel</h2>
+
+             <!-- ÉVOLUTION TEMPORELLE -->
+
+            <div class="panel flux-chart-panel">
+
+                <h3>
+                    Évolution du nombre de passagers
+                </h3>
+
+                <div class="chart-container">
+
+                    <canvas
+                        id="flux-history-chart"
+                    ></canvas>
+
+                </div>
+
+            </div>
+
+
+            <!-- COMPARAISON DES DÉBITS -->
+
+            <div class="panel flux-chart-panel">
+
+                <h3>
+                    Arrivées et sorties par zone
+                </h3>
+
+                <div class="chart-container">
+
+                    <canvas
+                        id="flux-rate-chart"
+                    ></canvas>
+
+                </div>
+
+            </div>
+
+            <!-- INDICATEURS INSTANTANÉS -->
+
+            <div class="page-grid flux-indicators">
 
                 <div class="panel">
-                    <h3>Enregistrement</h3>
-                    <div class="big"
-                         id="flux-enregistrement">
+
+                    <h3>Passagers présents</h3>
+
+                    <div
+                        class="big"
+                        id="flux-total"
+                    >
                         0
                     </div>
-                    <p>Personnes détectées</p>
+
+                    <p>
+                        Toutes zones confondues
+                    </p>
+
                 </div>
 
                 <div class="panel">
-                    <h3>Contrôle sûreté</h3>
-                    <div class="big"
-                         id="flux-surete">
-                        0
+
+                    <h3>Débit d'arrivée</h3>
+
+                    <div
+                        class="big"
+                        id="flux-arrival-total"
+                    >
+                        0.0
                     </div>
-                    <p>Personnes détectées</p>
+
+                    <p>
+                        Passagers/minute
+                    </p>
+
                 </div>
 
                 <div class="panel">
-                    <h3>Total</h3>
-                    <div class="big"
-                         id="flux-total">
-                        0
+
+                    <h3>Débit de sortie</h3>
+
+                    <div
+                        class="big"
+                        id="flux-throughput-total"
+                    >
+                        0.0
                     </div>
-                    <p>Passagers détectés</p>
+
+                    <p>
+                        Passagers/minute
+                    </p>
+
+                </div>
+
+                <div class="panel">
+
+                    <h3>Évolution de la file</h3>
+
+                    <div
+                        class="big"
+                        id="flux-balance"
+                    >
+                        0.0
+                    </div>
+
+                    <p id="flux-balance-label">
+                        File stable
+                    </p>
+
                 </div>
 
             </div>
 
         </div>
+
     `;
 }
 
@@ -789,6 +890,10 @@ document.querySelectorAll("nav a").forEach(a => {
         if (selectedPage === "dashboard") {
             initializeCameras();
         }
+        if (selectedPage === "flux"){
+            initializeFluxCharts();
+        }
+             
     };
 });
 
@@ -933,6 +1038,492 @@ function closeVideo() {
 
 }
 
+
+/* =====================================================
+   FLUX PAGE 
+===================================================== */
+function initializeFluxCharts() {
+
+    const historyCanvas =
+        document.getElementById(
+            "flux-history-chart"
+        );
+
+    const rateCanvas =
+        document.getElementById(
+            "flux-rate-chart"
+        );
+
+    if (!historyCanvas || !rateCanvas) {
+        return;
+    }
+
+    // Éviter de recréer plusieurs graphiques
+    if (fluxHistoryChart) {
+        fluxHistoryChart.destroy();
+    }
+
+    if (fluxRateChart) {
+        fluxRateChart.destroy();
+    }
+
+    // ==========================================
+    // COURBE D'ÉVOLUTION
+    // ==========================================
+
+    fluxHistoryChart = new Chart(
+
+        historyCanvas.getContext("2d"),
+
+        {
+            type: "line",
+
+            data: {
+
+                labels:
+                    fluxHistory.labels,
+
+                datasets: [
+
+                    {
+                        label: "Enregistrement",
+
+                        data:
+                            fluxHistory.registration,
+
+                        borderColor:
+                            "#22c55e",
+
+                        backgroundColor:
+                            "rgba(34, 197, 94, 0.10)",
+
+                        tension: 0.3,
+
+                        pointRadius: 0,
+
+                        borderWidth: 2
+                    },
+
+                    {
+                        label: "Contrôle sûreté",
+
+                        data:
+                            fluxHistory.security,
+
+                        borderColor:
+                            "#f97316",
+
+                        backgroundColor:
+                            "rgba(249, 115, 22, 0.10)",
+
+                        tension: 0.3,
+
+                        pointRadius: 0,
+
+                        borderWidth: 2
+                    },
+
+                    {
+                        label: "Embarquement",
+
+                        data:
+                            fluxHistory.boarding,
+
+                        borderColor:
+                            "#3b82f6",
+
+                        backgroundColor:
+                            "rgba(59, 130, 246, 0.10)",
+
+                        tension: 0.3,
+
+                        pointRadius: 0,
+
+                        borderWidth: 2
+                    }
+
+                ]
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                animation: false,
+
+                interaction: {
+                    mode: "index",
+                    intersect: false
+                },
+
+                scales: {
+
+                    y: {
+                        beginAtZero: true,
+
+                        title: {
+                            display: true,
+                            text: "Nombre de personnes"
+                        },
+
+                        ticks: {
+                            precision: 0
+                        }
+                    },
+
+                    x: {
+                        title: {
+                            display: true,
+                            text: "Heure"
+                        },
+
+                        ticks: {
+                            maxTicksLimit: 10
+                        }
+                    }
+
+                }
+
+            }
+
+        }
+
+    );
+
+
+    // ==========================================
+    // DIAGRAMME ARRIVÉES / SORTIES
+    // ==========================================
+
+    fluxRateChart = new Chart(
+
+        rateCanvas.getContext("2d"),
+
+        {
+            type: "bar",
+
+            data: {
+
+                labels: [
+                    "Enregistrement",
+                    "Contrôle sûreté",
+                    "Embarquement"
+                ],
+
+                datasets: [
+
+                    {
+                        label: "Arrivées",
+
+                        data: [0, 0, 0],
+
+                        backgroundColor:
+                            "#f97316"
+                    },
+
+                    {
+                        label: "Sorties",
+
+                        data: [0, 0, 0],
+
+                        backgroundColor:
+                            "#22c55e"
+                    }
+
+                ]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                animation: {
+                    duration: 300
+                },
+
+                scales: {
+
+                    y: {
+                        beginAtZero: true,
+
+                        title: {
+                            display: true,
+                            text: "Passagers par minute"
+                        }
+                    }
+
+                }
+
+            }
+
+        }
+
+    );
+}
+
+function updateFluxPage(data) {
+
+    const registration =
+        data[1] || {};
+
+    const security =
+        data[2] || {};
+
+    const boarding =
+        data[3] || {};
+
+
+    // ==========================================
+    // NOMBRE DE PERSONNES
+    // ==========================================
+
+    const registrationCount =
+        Number(
+            registration.person_count ?? 0
+        );
+
+    const securityCount =
+        Number(
+            security.person_count ?? 0
+        );
+
+    const boardingCount =
+        Number(
+            boarding.person_count ?? 0
+        );
+
+    const totalCount =
+        registrationCount
+        + securityCount
+        + boardingCount;
+
+
+    // ==========================================
+    // DÉBITS
+    // ==========================================
+
+    const arrivalRates = [
+
+        Number(
+            registration.arrival_rate_per_min ?? 0
+        ),
+
+        Number(
+            security.arrival_rate_per_min ?? 0
+        ),
+
+        Number(
+            boarding.arrival_rate_per_min ?? 0
+        )
+
+    ];
+
+    const throughputRates = [
+
+        Number(
+            registration.throughput_rate_per_min ?? 0
+        ),
+
+        Number(
+            security.throughput_rate_per_min ?? 0
+        ),
+
+        Number(
+            boarding.throughput_rate_per_min ?? 0
+        )
+
+    ];
+
+    const totalArrival =
+        arrivalRates.reduce(
+            (total, value) => total + value,
+            0
+        );
+
+    const totalThroughput =
+        throughputRates.reduce(
+            (total, value) => total + value,
+            0
+        );
+
+    const balance =
+        totalArrival - totalThroughput;
+
+
+    // ==========================================
+    // METTRE À JOUR LES INDICATEURS
+    // ==========================================
+
+    setFluxText(
+        "flux-total",
+        totalCount
+    );
+
+    setFluxText(
+        "flux-arrival-total",
+        totalArrival.toFixed(1)
+    );
+
+    setFluxText(
+        "flux-throughput-total",
+        totalThroughput.toFixed(1)
+    );
+
+    setFluxText(
+        "flux-balance",
+        `${balance >= 0 ? "+" : ""}${balance.toFixed(1)}`
+    );
+
+    updateFluxBalance(balance);
+
+
+    // ==========================================
+    // AJOUTER UNE MESURE À L'HISTORIQUE
+    // ==========================================
+
+    const currentTime =
+        new Date().toLocaleTimeString(
+            "fr-FR",
+            {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit"
+            }
+        );
+
+    fluxHistory.labels.push(
+        currentTime
+    );
+
+    fluxHistory.registration.push(
+        registrationCount
+    );
+
+    fluxHistory.security.push(
+        securityCount
+    );
+
+    fluxHistory.boarding.push(
+        boardingCount
+    );
+
+
+    // Supprimer les plus anciennes mesures
+    if (
+        fluxHistory.labels.length
+        > MAX_FLUX_HISTORY
+    ) {
+
+        fluxHistory.labels.shift();
+
+        fluxHistory.registration.shift();
+
+        fluxHistory.security.shift();
+
+        fluxHistory.boarding.shift();
+    }
+
+
+    // ==========================================
+    // ACTUALISER LES GRAPHIQUES
+    // ==========================================
+
+    if (fluxHistoryChart) {
+
+        fluxHistoryChart.update(
+            "none"
+        );
+
+    }
+
+    if (fluxRateChart) {
+
+        fluxRateChart.data.datasets[0].data =
+            arrivalRates;
+
+        fluxRateChart.data.datasets[1].data =
+            throughputRates;
+
+        fluxRateChart.update(
+            "none"
+        );
+
+    }
+
+}
+
+function updateFluxBalance(balance) {
+
+    const valueElement =
+        document.getElementById(
+            "flux-balance"
+        );
+
+    const labelElement =
+        document.getElementById(
+            "flux-balance-label"
+        );
+
+    if (!valueElement || !labelElement) {
+        return;
+    }
+
+    valueElement.classList.remove(
+        "flow-increasing",
+        "flow-stable",
+        "flow-decreasing"
+    );
+
+    if (balance > 0.5) {
+
+        labelElement.textContent =
+            "↗ File en augmentation";
+
+        valueElement.classList.add(
+            "flow-increasing"
+        );
+
+    } else if (balance < -0.5) {
+
+        labelElement.textContent =
+            "↘ File en diminution";
+
+        valueElement.classList.add(
+            "flow-decreasing"
+        );
+
+    } else {
+
+        labelElement.textContent =
+            "→ File stable";
+
+        valueElement.classList.add(
+            "flow-stable"
+        );
+
+    }
+}
+
+// utilitaire flux page 
+function setFluxText(
+    elementId,
+    value
+) {
+
+    const element =
+        document.getElementById(
+            elementId
+        );
+
+    if (element) {
+        element.textContent = value;
+    }
+}
 
 /* =====================================================
    HORLOGE

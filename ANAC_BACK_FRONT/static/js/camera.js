@@ -608,6 +608,9 @@ function setupCamera(cameraId) {
                 data[cameraId]
             );
 
+            // Mettre à jour Flux Page 
+            updateFluxPage(data);
+
 
             const cameraData =
                 data[cameraId];

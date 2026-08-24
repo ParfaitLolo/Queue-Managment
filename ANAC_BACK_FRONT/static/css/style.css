@@ -775,3 +775,56 @@ footer {
         grid-column: auto;
     }
 }
+
+
+/* ================= Page Flux ================= */
+
+.flux-page {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.flux-indicators {
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+}
+
+.flux-chart-panel {
+    min-height: 360px;
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 300px;
+}
+
+.flow-increasing {
+    color: #dc2626;
+}
+
+.flow-stable {
+    color: #f59e0b;
+}
+
+.flow-decreasing {
+    color: #16a34a;
+}
+
+@media (max-width: 900px) {
+
+    .flux-indicators {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+@media (max-width: 550px) {
+
+    .flux-indicators {
+        grid-template-columns: 1fr;
+    }
+
+}
