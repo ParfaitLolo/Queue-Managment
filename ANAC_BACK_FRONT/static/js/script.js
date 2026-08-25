@@ -1407,8 +1407,6 @@ function recommendation() {
 
             <div class="recommendation-title">
 
-                <span>🤖</span>
-
                 <strong>
                     RECOMMANDATION
                 </strong>
@@ -4224,3 +4222,4 @@ document.addEventListener(
     "DOMContentLoaded",
     demarrerApplication
 );
+
